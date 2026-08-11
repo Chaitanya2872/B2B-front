@@ -1,0 +1,169 @@
+.accounts-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.accounts-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.accounts-header h2 {
+  font-size: 18px;
+}
+
+.accounts-header p {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.accounts-search {
+  min-width: 300px;
+}
+
+.accounts-layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 16px;
+  min-height: 0;
+}
+
+.accounts-layout--read-only {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.accounts-sidebar,
+.accounts-main {
+  min-height: 0;
+}
+
+.accounts-sidebar {
+  padding: 18px;
+}
+
+.accounts-sidebar-header h3 {
+  font-size: 15px;
+}
+
+.accounts-sidebar-header p {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.accounts-main {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.accounts-table-wrap {
+  overflow: auto;
+}
+
+.accounts-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.accounts-table th,
+.accounts-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font-size: 13px;
+}
+
+.accounts-table th {
+  color: var(--text-faint);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.accounts-name {
+  font-weight: 600;
+}
+
+.accounts-error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.accounts-empty {
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 12.5px;
+  padding: 28px 16px;
+}
+
+.accounts-actions-col {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.accounts-row-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.accounts-row-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+}
+
+.accounts-row-action-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.accounts-row-action-btn--danger:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.accounts-row-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.accounts-row-editing td {
+  background: var(--accent-bg);
+}
+
+.accounts-inline-input {
+  width: 100%;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  font-size: 13px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.accounts-inline-input:focus {
+  outline: none;
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+@media (max-width: 980px) {
+  .accounts-layout {
+    grid-template-columns: 1fr;
+  }
+}

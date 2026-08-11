@@ -1,0 +1,169 @@
+.contacts-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.contacts-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.contacts-header h2 {
+  font-size: 18px;
+}
+
+.contacts-header p {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.contacts-search {
+  min-width: 300px;
+}
+
+.contacts-layout {
+  display: grid;
+  grid-template-columns: 320px minmax(0, 1fr);
+  gap: 16px;
+  min-height: 0;
+}
+
+.contacts-layout--read-only {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.contacts-sidebar,
+.contacts-main {
+  min-height: 0;
+}
+
+.contacts-sidebar {
+  padding: 18px;
+}
+
+.contacts-sidebar-header h3 {
+  font-size: 15px;
+}
+
+.contacts-sidebar-header p {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.contacts-main {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.contacts-table-wrap {
+  overflow: auto;
+}
+
+.contacts-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.contacts-table th,
+.contacts-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font-size: 13px;
+}
+
+.contacts-table th {
+  color: var(--text-faint);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.contacts-name {
+  font-weight: 600;
+}
+
+.contacts-error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.contacts-empty {
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 12.5px;
+  padding: 28px 16px;
+}
+
+.contacts-actions-col {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.contacts-row-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.contacts-row-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+}
+
+.contacts-row-action-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.contacts-row-action-btn--danger:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.contacts-row-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.contacts-row-editing td {
+  background: var(--accent-bg);
+}
+
+.contacts-inline-input {
+  width: 100%;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px;
+  font-size: 13px;
+  background: var(--surface);
+  color: var(--text);
+}
+
+.contacts-inline-input:focus {
+  outline: none;
+  border-color: var(--accent-border);
+  box-shadow: 0 0 0 3px var(--accent-bg);
+}
+
+@media (max-width: 980px) {
+  .contacts-layout {
+    grid-template-columns: 1fr;
+  }
+}

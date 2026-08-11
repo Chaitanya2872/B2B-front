@@ -53,3 +53,35 @@
 .search-box input::placeholder {
   color: var(--text-faint);
 }
+
+.deals-view-toggle {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.deals-view-toggle-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: calc(var(--radius-sm) - 2px);
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 12.5px;
+  font-weight: 500;
+}
+
+.deals-view-toggle-btn:hover {
+  color: var(--text);
+}
+
+.deals-view-toggle-btn--active {
+  background: var(--accent-bg);
+  color: var(--text);
+}

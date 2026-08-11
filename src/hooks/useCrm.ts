@@ -1,10 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  createAccount,
+  createContact,
   createDeal,
   createProduct,
+  deleteAccount,
+  deleteContact,
   deleteProduct,
+  fetchAccounts,
   fetchActivityItems,
   fetchApprovals,
+  fetchContacts,
   fetchDashboardSummary,
   fetchDealStageHistory,
   fetchDeals,
@@ -17,14 +23,18 @@ import {
   fetchWarrantyItems,
   type NewDealInput,
   type NewProductInput,
+  updateAccount,
+  updateContact,
   updateDeal,
   updatePipelineStage,
   updateApprovalStatus,
   updateProduct,
 } from '../services/api/crm'
 import type {
+  AccountInput,
   ApprovalRole,
   ApprovalStatus,
+  ContactInput,
   Deal,
   DealUpdateInput,
   PipelineStageUpdateRequest,
@@ -47,6 +57,23 @@ export const crmKeys = {
   activity: () => [...crmKeys.all, 'activity'] as const,
   stageHistory: (dealId: string) =>
     [...crmKeys.all, 'stage-history', dealId] as const,
+  accountLists: () => [...crmKeys.all, 'accounts'] as const,
+  accounts: (search = '') => [...crmKeys.all, 'accounts', search] as const,
+  contactLists: () => [...crmKeys.all, 'contacts'] as const,
+  contacts: (search = '', accountName = '') =>
+    [...crmKeys.all, 'contacts', search, accountName] as const,
+}
+
+function invalidateAccountReadModels(
+  queryClient: ReturnType<typeof useQueryClient>,
+) {
+  void queryClient.invalidateQueries({ queryKey: crmKeys.accountLists() })
+}
+
+function invalidateContactReadModels(
+  queryClient: ReturnType<typeof useQueryClient>,
+) {
+  void queryClient.invalidateQueries({ queryKey: crmKeys.contactLists() })
 }
 
 function invalidateDealReadModels(
@@ -314,6 +341,98 @@ export function useUpdatePipelineStage() {
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: crmKeys.stages() })
       invalidateDealReadModels(queryClient)
+    },
+  })
+}
+
+export function useAccounts(search?: string) {
+  return useQuery({
+    queryKey: crmKeys.accounts(search),
+    queryFn: () => fetchAccounts(search),
+  })
+}
+
+export function useCreateAccount() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: AccountInput) => createAccount(input),
+    onSuccess: () => {
+      invalidateAccountReadModels(queryClient)
+    },
+  })
+}
+
+export function useUpdateAccount() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      accountId,
+      input,
+    }: {
+      accountId: string
+      input: AccountInput
+    }) => updateAccount(accountId, input),
+    onSuccess: () => {
+      invalidateAccountReadModels(queryClient)
+    },
+  })
+}
+
+export function useDeleteAccount() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (accountId: string) => deleteAccount(accountId),
+    onSuccess: () => {
+      invalidateAccountReadModels(queryClient)
+    },
+  })
+}
+
+export function useContacts(search?: string, accountName?: string) {
+  return useQuery({
+    queryKey: crmKeys.contacts(search, accountName),
+    queryFn: () => fetchContacts({ search, accountName }),
+  })
+}
+
+export function useCreateContact() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: ContactInput) => createContact(input),
+    onSuccess: () => {
+      invalidateContactReadModels(queryClient)
+    },
+  })
+}
+
+export function useUpdateContact() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      contactId,
+      input,
+    }: {
+      contactId: string
+      input: ContactInput
+    }) => updateContact(contactId, input),
+    onSuccess: () => {
+      invalidateContactReadModels(queryClient)
+    },
+  })
+}
+
+export function useDeleteContact() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (contactId: string) => deleteContact(contactId),
+    onSuccess: () => {
+      invalidateContactReadModels(queryClient)
     },
   })
 }

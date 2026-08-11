@@ -1,9 +1,13 @@
 import { apiClient } from './client'
 import type {
+  Account,
+  AccountInput,
   ActivityItem,
   ApprovalRole,
   ApprovalStatus,
   ApprovalStep,
+  Contact,
+  ContactInput,
   DashboardSummary,
   Deal,
   DealUpdateInput,
@@ -225,4 +229,53 @@ export async function updateApprovalStatus(
     },
   )
   return normalizeDeal(response.data)
+}
+
+export async function fetchAccounts(search?: string) {
+  const response = await apiClient.get<Account[]>('/accounts', {
+    params: search ? { search } : undefined,
+  })
+  return response.data
+}
+
+export async function createAccount(input: AccountInput) {
+  const response = await apiClient.post<Account>('/accounts', input)
+  return response.data
+}
+
+export async function updateAccount(accountId: string, input: AccountInput) {
+  const response = await apiClient.put<Account>(
+    `/accounts/${accountId}`,
+    input,
+  )
+  return response.data
+}
+
+export async function deleteAccount(accountId: string) {
+  await apiClient.delete(`/accounts/${accountId}`)
+}
+
+export async function fetchContacts(params?: {
+  search?: string
+  accountName?: string
+}) {
+  const response = await apiClient.get<Contact[]>('/contacts', { params })
+  return response.data
+}
+
+export async function createContact(input: ContactInput) {
+  const response = await apiClient.post<Contact>('/contacts', input)
+  return response.data
+}
+
+export async function updateContact(contactId: string, input: ContactInput) {
+  const response = await apiClient.put<Contact>(
+    `/contacts/${contactId}`,
+    input,
+  )
+  return response.data
+}
+
+export async function deleteContact(contactId: string) {
+  await apiClient.delete(`/contacts/${contactId}`)
 }

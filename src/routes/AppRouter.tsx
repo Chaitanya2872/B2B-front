@@ -10,6 +10,8 @@ import { QueryState } from '../components/ui/QueryState'
 import { MainLayout } from '../layouts/MainLayout'
 import { Overview } from '../pages/Overview'
 import { Home } from '../pages/Home'
+import { Contacts } from '../pages/Contacts'
+import { Accounts } from '../pages/Accounts'
 import { Products } from '../pages/Products'
 import { Approvals } from '../pages/Approvals'
 import { WarrantyAmc } from '../pages/WarrantyAmc'
@@ -190,6 +192,22 @@ export function AppRouter() {
               element={
                 <RequireB2BPermission>
                   <Home />
+                </RequireB2BPermission>
+              }
+            />
+            <Route
+              path="/contacts"
+              element={
+                <RequireB2BPermission>
+                  <Contacts />
+                </RequireB2BPermission>
+              }
+            />
+            <Route
+              path="/accounts"
+              element={
+                <RequireB2BPermission>
+                  <Accounts />
                 </RequireB2BPermission>
               }
             />

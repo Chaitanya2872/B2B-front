@@ -159,3 +159,39 @@ export interface ImportDealsResponse {
   detectedHeaders: string[]
   dynamicHeaders: string[]
 }
+
+export interface Account {
+  id: string
+  name: string
+  industry: string
+  website: string
+  phone: string
+  address: string
+  accountManager: string
+}
+
+export interface AccountInput {
+  name: string
+  industry: string
+  website: string
+  phone: string
+  address: string
+  accountManager: string
+}
+
+export interface Contact {
+  id: string
+  name: string
+  email: string
+  phone: string
+  title: string
+  accountName: string
+}
+
+export interface ContactInput {
+  name: string
+  email: string
+  phone: string
+  title: string
+  accountName: string
+}

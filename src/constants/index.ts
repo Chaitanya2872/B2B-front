@@ -1,9 +1,11 @@
 import {
+  Building2,
   LayoutDashboard,
   LayoutGrid,
   PackageSearch,
   CheckSquare,
   ShieldCheck,
+  Users,
   type LucideIcon,
 } from 'lucide-react'
 import type { ApprovalRole } from '../types'
@@ -17,7 +19,9 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { to: '/', label: 'Overview', icon: LayoutDashboard },
-  { to: '/pipeline', label: 'Pipeline', icon: LayoutGrid },
+  { to: '/pipeline', label: 'Deals', icon: LayoutGrid },
+  { to: '/contacts', label: 'Contacts', icon: Users },
+  { to: '/accounts', label: 'Accounts', icon: Building2 },
   { to: '/products', label: 'Products', icon: PackageSearch },
   { to: '/approvals', label: 'Approvals', icon: CheckSquare },
   { to: '/warranty', label: 'Warranty & AMC', icon: ShieldCheck },
