@@ -7,6 +7,7 @@ interface StageColumnProps {
   stage: PipelineStage
   deals: Deal[]
   onDealSelect: (deal: Deal) => void
+  canMoveDeals: boolean
   isDropTarget: boolean
   isBusy: boolean
   onDragDeal: (dealId: string) => void
@@ -20,6 +21,7 @@ export function StageColumn({
   stage,
   deals,
   onDealSelect,
+  canMoveDeals,
   isDropTarget,
   isBusy,
   onDragDeal,
@@ -34,10 +36,12 @@ export function StageColumn({
   return (
     <section
       className={`stage-column ${isDropTarget ? 'stage-column--drop-target' : ''}`}
-      onDragOver={(event) => event.preventDefault()}
-      onDragEnter={onDragEnter}
-      onDragLeave={onDragLeave}
-      onDrop={onDropDeal}
+      onDragOver={(event) => {
+        if (canMoveDeals) event.preventDefault()
+      }}
+      onDragEnter={canMoveDeals ? onDragEnter : undefined}
+      onDragLeave={canMoveDeals ? onDragLeave : undefined}
+      onDrop={canMoveDeals ? onDropDeal : undefined}
     >
       <header className="stage-column-header">
         <div className="stage-column-title">
@@ -62,6 +66,7 @@ export function StageColumn({
             key={deal.id}
             deal={deal}
             disabled={isBusy}
+            canDrag={canMoveDeals}
             onSelect={() => onDealSelect(deal)}
             onDragStart={() => onDragDeal(deal.id)}
             onDragEnd={onDragEnd}
@@ -69,7 +74,7 @@ export function StageColumn({
         ))}
         {deals.length === 0 && (
           <p className="stage-empty">
-            Drop a deal here
+            {canMoveDeals ? 'Drop a deal here' : 'No deals in this stage'}
             <span>{formatCurrency(total)}</span>
           </p>
         )}

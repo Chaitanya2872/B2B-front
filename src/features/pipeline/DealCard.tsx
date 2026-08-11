@@ -27,6 +27,7 @@ const RISK_TONE: Record<Deal['riskStatus'], string> = {
 interface DealCardProps {
   deal: Deal
   disabled?: boolean
+  canDrag: boolean
   onSelect: () => void
   onDragStart: () => void
   onDragEnd: () => void
@@ -35,6 +36,7 @@ interface DealCardProps {
 export function DealCard({
   deal,
   disabled = false,
+  canDrag,
   onSelect,
   onDragStart,
   onDragEnd,
@@ -43,10 +45,12 @@ export function DealCard({
 
   return (
     <article
-      className={`deal-card ${disabled ? 'deal-card--disabled' : ''}`}
-      draggable={!disabled}
-      onDragStart={onDragStart}
-      onDragEnd={onDragEnd}
+      className={`deal-card ${disabled ? 'deal-card--disabled' : ''}${
+        canDrag ? '' : ' deal-card--readonly'
+      }`}
+      draggable={canDrag && !disabled}
+      onDragStart={canDrag ? onDragStart : undefined}
+      onDragEnd={canDrag ? onDragEnd : undefined}
     >
       <div className="deal-card-top">
         <div className="deal-card-heading">
@@ -76,7 +80,10 @@ export function DealCard({
       <div className="deal-card-badges">
         <span
           className="deal-card-badge"
-          style={{ background: `${RISK_TONE[deal.riskStatus]}20`, color: RISK_TONE[deal.riskStatus] }}
+          style={{
+            background: `${RISK_TONE[deal.riskStatus]}20`,
+            color: RISK_TONE[deal.riskStatus],
+          }}
         >
           <CircleAlert size={12} strokeWidth={2.2} />
           {formatStageLabel(deal.riskStatus)}
@@ -84,7 +91,9 @@ export function DealCard({
         <span className="deal-card-badge">
           {deal.probabilityPercent}% probability
         </span>
-        <span className="deal-card-badge">{deal.daysInStage} days in stage</span>
+        <span className="deal-card-badge">
+          {deal.daysInStage} days in stage
+        </span>
       </div>
 
       {(deal.nextActivity || deal.expectedClosureDate || deal.oemVendor) && (
@@ -118,7 +127,11 @@ export function DealCard({
       {extraFields.length > 0 && (
         <div className="deal-card-extra-fields">
           {extraFields.map(([key, value]) => (
-            <span key={key} className="deal-card-extra-chip" title={`${key}: ${value}`}>
+            <span
+              key={key}
+              className="deal-card-extra-chip"
+              title={`${key}: ${value}`}
+            >
               <strong>{key}</strong>: {value}
             </span>
           ))}
@@ -134,11 +147,7 @@ export function DealCard({
         </div>
         <div className="deal-card-footer-actions">
           <span className="deal-card-time">{timeAgo(deal.updatedAt)}</span>
-          <button
-            type="button"
-            className="deal-card-link"
-            onClick={onSelect}
-          >
+          <button type="button" className="deal-card-link" onClick={onSelect}>
             Open
           </button>
         </div>

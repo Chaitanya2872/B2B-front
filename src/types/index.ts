@@ -2,20 +2,20 @@ export type StageId = string
 
 export type Priority = 'low' | 'medium' | 'high'
 
-export type ApprovalRole = 'Solution' | 'RSM' | 'Finance' | 'BusinessHead'
+export type ApprovalRole = 'RSM' | 'Finance' | 'Business Head'
 
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected'
 
 export type RiskStatus =
-  | 'healthy'
-  | 'attention'
-  | 'overdue'
-  | 'stalled'
-  | 'high_risk'
+  'healthy' | 'attention' | 'overdue' | 'stalled' | 'high_risk'
 
 export interface ApprovalStep {
   role: ApprovalRole
   status: ApprovalStatus
+  actedByUserId?: string
+  actedByName?: string
+  actedByEmail?: string
+  actedAt?: string
 }
 
 export interface Person {
@@ -43,7 +43,7 @@ export interface Deal {
   weightedValue: number
   daysInStage: number
   approvals: ApprovalStep[]
-  extraFields?: Record<string, string>
+  extraFields: Record<string, string>
 }
 
 export type WarrantyStatus = 'active' | 'expiring' | 'expired'
@@ -87,7 +87,7 @@ export interface PipelineStage {
   color: string
   maxExpectedDurationDays: number
   mandatoryFields: string[]
-  requiredApprovals: string[]
+  requiredApprovals: ApprovalRole[]
   allowedNextStages: AllowedStageTransition[]
 }
 
@@ -127,7 +127,7 @@ export interface PipelineStageUpdateRequest {
   color: string
   maxExpectedDurationDays: number
   mandatoryFields: string[]
-  requiredApprovals: string[]
+  requiredApprovals: ApprovalRole[]
   allowedNextStages: AllowedStageTransition[]
 }
 

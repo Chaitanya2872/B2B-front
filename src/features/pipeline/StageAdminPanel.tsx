@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import { Settings2, X } from 'lucide-react'
 import { useUpdatePipelineStage } from '../../hooks/useCrm'
+import { getApiErrorMessage } from '../../services/api/client'
+import { B2B_APPROVAL_ROLES } from '../../services/auth/permissions'
 import type { AllowedStageTransition, PipelineStage } from '../../types'
 import { formatApprovalRole } from '../../utils/helpers'
 import './PipelinePanels.css'
@@ -17,7 +19,7 @@ const FIELD_OPTIONS = [
   { id: 'oemVendor', label: 'OEM / vendor' },
 ] as const
 
-const APPROVAL_OPTIONS = ['Solution', 'RSM', 'Finance', 'BusinessHead'] as const
+const APPROVAL_OPTIONS = B2B_APPROVAL_ROLES
 
 interface StageAdminPanelProps {
   stages: PipelineStage[]
@@ -27,7 +29,9 @@ interface StageAdminPanelProps {
 export function StageAdminPanel({ stages, onClose }: StageAdminPanelProps) {
   const updatePipelineStage = useUpdatePipelineStage()
   const [drafts, setDrafts] = useState<Record<string, PipelineStage>>(
-    Object.fromEntries(stages.map((stage) => [stage.id, structuredClone(stage)])),
+    Object.fromEntries(
+      stages.map((stage) => [stage.id, structuredClone(stage)]),
+    ),
   )
 
   async function handleSave(stageId: string) {
@@ -36,20 +40,24 @@ export function StageAdminPanel({ stages, onClose }: StageAdminPanelProps) {
       return
     }
 
-    await updatePipelineStage.mutateAsync({
-      stageId,
-      input: {
-        name: stage.name,
-        shortLabel: stage.shortLabel,
-        displayOrder: Number(stage.displayOrder),
-        probabilityPercent: Number(stage.probabilityPercent),
-        color: stage.color,
-        maxExpectedDurationDays: Number(stage.maxExpectedDurationDays),
-        mandatoryFields: stage.mandatoryFields,
-        requiredApprovals: stage.requiredApprovals,
-        allowedNextStages: stage.allowedNextStages,
-      },
-    })
+    try {
+      await updatePipelineStage.mutateAsync({
+        stageId,
+        input: {
+          name: stage.name,
+          shortLabel: stage.shortLabel,
+          displayOrder: Number(stage.displayOrder),
+          probabilityPercent: Number(stage.probabilityPercent),
+          color: stage.color,
+          maxExpectedDurationDays: Number(stage.maxExpectedDurationDays),
+          mandatoryFields: stage.mandatoryFields,
+          requiredApprovals: stage.requiredApprovals,
+          allowedNextStages: stage.allowedNextStages,
+        },
+      })
+    } catch {
+      // React Query keeps the error for the inline state below.
+    }
   }
 
   return (
@@ -64,7 +72,10 @@ export function StageAdminPanel({ stages, onClose }: StageAdminPanelProps) {
         <div className="drawer-header">
           <div>
             <h3 id="stage-admin-title">Pipeline stage settings</h3>
-            <p>Manage probabilities, required fields, approvals, and allowed next moves.</p>
+            <p>
+              Manage probabilities, required fields, approvals, and allowed next
+              moves.
+            </p>
           </div>
           <button className="modal-close" onClick={onClose} aria-label="Close">
             <X size={16} strokeWidth={2} />
@@ -82,7 +93,10 @@ export function StageAdminPanel({ stages, onClose }: StageAdminPanelProps) {
               <section key={stage.id} className="stage-admin-card">
                 <div className="stage-admin-header">
                   <div className="stage-admin-title">
-                    <span className="stage-dot" style={{ background: draft.color }} />
+                    <span
+                      className="stage-dot"
+                      style={{ background: draft.color }}
+                    />
                     <div>
                       <h4>{stage.id}</h4>
                       <p>{draft.name}</p>
@@ -121,7 +135,10 @@ export function StageAdminPanel({ stages, onClose }: StageAdminPanelProps) {
                         onChange={(event) =>
                           setDrafts((current) => ({
                             ...current,
-                            [stage.id]: { ...draft, shortLabel: event.target.value },
+                            [stage.id]: {
+                              ...draft,
+                              shortLabel: event.target.value,
+                            },
                           }))
                         }
                       />
@@ -177,7 +194,9 @@ export function StageAdminPanel({ stages, onClose }: StageAdminPanelProps) {
                             ...current,
                             [stage.id]: {
                               ...draft,
-                              maxExpectedDurationDays: Number(event.target.value),
+                              maxExpectedDurationDays: Number(
+                                event.target.value,
+                              ),
                             },
                           }))
                         }
@@ -303,14 +322,17 @@ export function StageAdminPanel({ stages, onClose }: StageAdminPanelProps) {
                                 <input
                                   type="checkbox"
                                   disabled={!activeTransition}
-                                  checked={activeTransition?.confirmationRequired ?? false}
+                                  checked={
+                                    activeTransition?.confirmationRequired ??
+                                    false
+                                  }
                                   onChange={(event) =>
                                     setDrafts((current) => ({
                                       ...current,
                                       [stage.id]: {
                                         ...draft,
-                                        allowedNextStages: draft.allowedNextStages.map(
-                                          (item) =>
+                                        allowedNextStages:
+                                          draft.allowedNextStages.map((item) =>
                                             item.stageId === candidate.id
                                               ? {
                                                   ...item,
@@ -318,7 +340,7 @@ export function StageAdminPanel({ stages, onClose }: StageAdminPanelProps) {
                                                     event.target.checked,
                                                 }
                                               : item,
-                                        ),
+                                          ),
                                       },
                                     }))
                                   }
@@ -337,7 +359,10 @@ export function StageAdminPanel({ stages, onClose }: StageAdminPanelProps) {
 
           {updatePipelineStage.isError && (
             <p className="drawer-error">
-              We couldn&apos;t save the stage configuration. Please review the inputs and try again.
+              {getApiErrorMessage(
+                updatePipelineStage.error,
+                'We could not save the stage configuration. Please review the inputs and try again.',
+              )}
             </p>
           )}
         </div>
@@ -346,7 +371,7 @@ export function StageAdminPanel({ stages, onClose }: StageAdminPanelProps) {
   )
 }
 
-function toggleItem(values: string[], item: string, enabled: boolean) {
+function toggleItem<T extends string>(values: T[], item: T, enabled: boolean) {
   if (enabled) {
     return values.includes(item) ? values : [...values, item]
   }

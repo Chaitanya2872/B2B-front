@@ -129,12 +129,28 @@
 
 .drawer-actions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   gap: 10px;
 }
 
 .drawer-error {
   color: var(--danger);
+  font-size: 12px;
+}
+
+.deal-form-fieldset {
+  padding: 0;
+  margin: 0;
+  border: 0;
+}
+
+.deal-form-fieldset:disabled {
+  opacity: 0.72;
+}
+
+.permission-note {
+  color: var(--text-faint);
   font-size: 12px;
 }
 

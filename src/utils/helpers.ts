@@ -37,7 +37,7 @@ export function formatStageLabel(stageId: string): string {
 }
 
 export function formatApprovalRole(role: string): string {
-  if (role === 'BusinessHead') {
+  if (role === 'BusinessHead' || role === 'Business Head') {
     return 'Business Head'
   }
 

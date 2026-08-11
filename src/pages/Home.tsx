@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { Plus, Search, Settings2, Upload } from 'lucide-react'
 import { QueryState } from '../components/ui/QueryState'
+import { useCurrentUser } from '../hooks/useAuth'
 import { useDeals, usePipelineStages } from '../hooks/useCrm'
+import { getPipelineActionPermissions } from '../services/auth/permissions'
 import { useAppStore } from '../store'
 import { PipelineBoard } from '../features/pipeline/PipelineBoard'
 import { AddDealModal } from '../features/pipeline/AddDealModal'
@@ -9,6 +11,7 @@ import { ImportDealsModal } from '../features/pipeline/ImportDealsModal'
 import { DealDetailDrawer } from '../features/pipeline/DealDetailDrawer'
 import { StageAdminPanel } from '../features/pipeline/StageAdminPanel'
 import type { Deal } from '../types'
+import { getQueryStateCopy } from '../utils/queryState'
 import './Home.css'
 
 export function Home() {
@@ -18,12 +21,20 @@ export function Home() {
   const [isImportOpen, setIsImportOpen] = useState(false)
   const [isStageAdminOpen, setIsStageAdminOpen] = useState(false)
   const [selectedDeal, setSelectedDeal] = useState<Deal | null>(null)
-  const { data: deals = [], isLoading, isError } = useDeals(searchQuery)
+  const { data: currentUser } = useCurrentUser()
+  const { canManageDeals, canManagePipeline } =
+    getPipelineActionPermissions(currentUser)
+  const { data: deals = [], isLoading, isError, error } = useDeals(searchQuery)
   const {
     data: stages = [],
     isLoading: isStagesLoading,
     isError: isStagesError,
+    error: stagesError,
   } = usePipelineStages()
+  const errorState = getQueryStateCopy(error ?? stagesError, {
+    title: 'Pipeline unavailable',
+    detail: 'The CRM API could not be reached. Start the backend and refresh.',
+  })
 
   return (
     <div className="home-page">
@@ -45,18 +56,33 @@ export function Home() {
               onChange={(event) => setSearchQuery(event.target.value)}
             />
           </div>
-          <button className="btn btn-primary" onClick={() => setIsAddDealOpen(true)}>
-            <Plus size={15} strokeWidth={2.5} />
-            Add deal
-          </button>
-          <button className="btn btn-ghost" onClick={() => setIsStageAdminOpen(true)}>
-            <Settings2 size={15} strokeWidth={2.3} />
-            Manage stages
-          </button>
-          <button className="btn btn-ghost" onClick={() => setIsImportOpen(true)}>
-            <Upload size={15} strokeWidth={2.5} />
-            Import Excel
-          </button>
+          {canManageDeals && (
+            <button
+              className="btn btn-primary"
+              onClick={() => setIsAddDealOpen(true)}
+            >
+              <Plus size={15} strokeWidth={2.5} />
+              Add deal
+            </button>
+          )}
+          {canManagePipeline && (
+            <button
+              className="btn btn-ghost"
+              onClick={() => setIsStageAdminOpen(true)}
+            >
+              <Settings2 size={15} strokeWidth={2.3} />
+              Manage stages
+            </button>
+          )}
+          {canManageDeals && (
+            <button
+              className="btn btn-ghost"
+              onClick={() => setIsImportOpen(true)}
+            >
+              <Upload size={15} strokeWidth={2.5} />
+              Import Excel
+            </button>
+          )}
         </div>
       </div>
 
@@ -67,27 +93,44 @@ export function Home() {
         />
       ) : isError || isStagesError ? (
         <QueryState
-          title="Pipeline unavailable"
-          detail="The CRM API could not be reached. Start the backend and refresh."
+          title={errorState.title}
+          detail={errorState.detail}
           tone="danger"
         />
+      ) : stages.length === 0 ? (
+        <QueryState
+          title="No pipeline stages"
+          detail="Pipeline stages are required before deals can be shown."
+        />
       ) : (
-        <PipelineBoard deals={deals} stages={stages} onDealSelect={setSelectedDeal} />
+        <PipelineBoard
+          deals={deals}
+          stages={stages}
+          canMoveDeals={canManageDeals}
+          onDealSelect={setSelectedDeal}
+        />
       )}
 
-      {isAddDealOpen && (
+      {isAddDealOpen && canManageDeals && (
         <AddDealModal onClose={() => setIsAddDealOpen(false)} stages={stages} />
       )}
-      {isImportOpen && (
-        <ImportDealsModal onClose={() => setIsImportOpen(false)} stages={stages} />
+      {isImportOpen && canManageDeals && (
+        <ImportDealsModal
+          onClose={() => setIsImportOpen(false)}
+          stages={stages}
+        />
       )}
-      {isStageAdminOpen && (
-        <StageAdminPanel onClose={() => setIsStageAdminOpen(false)} stages={stages} />
+      {isStageAdminOpen && canManagePipeline && (
+        <StageAdminPanel
+          onClose={() => setIsStageAdminOpen(false)}
+          stages={stages}
+        />
       )}
       {selectedDeal && (
         <DealDetailDrawer
           key={selectedDeal.id}
           deal={selectedDeal}
+          canEdit={canManageDeals}
           onClose={() => setSelectedDeal(null)}
         />
       )}

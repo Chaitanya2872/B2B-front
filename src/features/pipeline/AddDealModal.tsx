@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { Building2, CalendarClock, Layers, X } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useCreateDeal, useProducts } from '../../hooks/useCrm'
+import { getApiErrorMessage } from '../../services/api/client'
 import type { PipelineStage } from '../../types'
 import './AddDealModal.css'
 
@@ -99,16 +100,20 @@ export function AddDealModal({ onClose, stages }: AddDealModalProps) {
 
   const onSubmit = handleSubmit(
     async (values) => {
-      await createDeal.mutateAsync({
-        ...values,
-        expectedClosureDate: values.expectedClosureDate
-          ? new Date(values.expectedClosureDate).toISOString()
-          : '',
-        nextActivityDueDate: values.nextActivityDueDate
-          ? new Date(values.nextActivityDueDate).toISOString()
-          : '',
-      })
-      onClose()
+      try {
+        await createDeal.mutateAsync({
+          ...values,
+          expectedClosureDate: values.expectedClosureDate
+            ? new Date(values.expectedClosureDate).toISOString()
+            : '',
+          nextActivityDueDate: values.nextActivityDueDate
+            ? new Date(values.nextActivityDueDate).toISOString()
+            : '',
+        })
+        onClose()
+      } catch {
+        // React Query keeps the error for the inline state below.
+      }
     },
     (invalidFields) => {
       const firstInvalidSection = SECTIONS.find((section) =>
@@ -145,14 +150,19 @@ export function AddDealModal({ onClose, stages }: AddDealModalProps) {
                   key={section.id}
                   type="button"
                   className={`deal-modal-nav-item${
-                    activeSection === section.id ? ' deal-modal-nav-item--active' : ''
+                    activeSection === section.id
+                      ? ' deal-modal-nav-item--active'
+                      : ''
                   }`}
                   onClick={() => setActiveSection(section.id)}
                 >
                   <Icon size={15} strokeWidth={2} />
                   <span>{section.label}</span>
                   {sectionsWithErrors.has(section.id) && (
-                    <span className="deal-modal-nav-error" aria-label="Has errors" />
+                    <span
+                      className="deal-modal-nav-error"
+                      aria-label="Has errors"
+                    />
                   )}
                 </button>
               )
@@ -160,7 +170,10 @@ export function AddDealModal({ onClose, stages }: AddDealModalProps) {
           </nav>
 
           <form className="deal-form" onSubmit={onSubmit} noValidate>
-            <div hidden={activeSection !== 'company'} className="deal-form-section">
+            <div
+              hidden={activeSection !== 'company'}
+              className="deal-form-section"
+            >
               <label className="field">
                 <span>Company</span>
                 <input
@@ -173,18 +186,29 @@ export function AddDealModal({ onClose, stages }: AddDealModalProps) {
 
               <label className="field">
                 <span>Contact person</span>
-                <input {...register('contact')} placeholder="e.g. Ramesh Iyer" />
+                <input
+                  {...register('contact')}
+                  placeholder="e.g. Ramesh Iyer"
+                />
                 {errors.contact && <em>{errors.contact.message}</em>}
               </label>
 
               <label className="field">
                 <span>Account manager</span>
-                <input {...register('accountManager')} placeholder="e.g. Ravi Teja" />
-                {errors.accountManager && <em>{errors.accountManager.message}</em>}
+                <input
+                  {...register('accountManager')}
+                  placeholder="e.g. Ravi Teja"
+                />
+                {errors.accountManager && (
+                  <em>{errors.accountManager.message}</em>
+                )}
               </label>
             </div>
 
-            <div hidden={activeSection !== 'deal'} className="deal-form-section">
+            <div
+              hidden={activeSection !== 'deal'}
+              className="deal-form-section"
+            >
               <label className="field">
                 <span>Product / requirement</span>
                 <input
@@ -194,7 +218,7 @@ export function AddDealModal({ onClose, stages }: AddDealModalProps) {
                 />
                 {selectedProduct && (
                   <small className="field-help">
-                    {selectedProduct.category} · {selectedProduct.vendor}
+                    {selectedProduct.category} - {selectedProduct.vendor}
                   </small>
                 )}
                 {errors.product && <em>{errors.product.message}</em>}
@@ -241,16 +265,25 @@ export function AddDealModal({ onClose, stages }: AddDealModalProps) {
               </label>
             </div>
 
-            <div hidden={activeSection !== 'schedule'} className="deal-form-section">
+            <div
+              hidden={activeSection !== 'schedule'}
+              className="deal-form-section"
+            >
               <div className="field-row">
                 <label className="field">
                   <span>Expected closure date</span>
-                  <input type="datetime-local" {...register('expectedClosureDate')} />
+                  <input
+                    type="datetime-local"
+                    {...register('expectedClosureDate')}
+                  />
                 </label>
 
                 <label className="field">
                   <span>Next activity due</span>
-                  <input type="datetime-local" {...register('nextActivityDueDate')} />
+                  <input
+                    type="datetime-local"
+                    {...register('nextActivityDueDate')}
+                  />
                 </label>
               </div>
 
@@ -277,7 +310,10 @@ export function AddDealModal({ onClose, stages }: AddDealModalProps) {
             </div>
             {createDeal.isError && (
               <div className="form-error">
-                We couldn&apos;t save the deal. Please check the backend and try again.
+                {getApiErrorMessage(
+                  createDeal.error,
+                  'We could not save the deal. Please check the backend and try again.',
+                )}
               </div>
             )}
           </form>
@@ -285,7 +321,7 @@ export function AddDealModal({ onClose, stages }: AddDealModalProps) {
         <datalist id="catalog-products">
           {products.map((product) => (
             <option key={product.id} value={product.name}>
-              {product.category} · {product.vendor}
+              {product.category} - {product.vendor}
             </option>
           ))}
         </datalist>

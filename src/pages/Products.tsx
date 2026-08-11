@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Check, Pencil, Plus, Trash2, X } from 'lucide-react'
 import { QueryState } from '../components/ui/QueryState'
+import { useCurrentUser } from '../hooks/useAuth'
 import {
   useCreateProduct,
   useDeleteProduct,
@@ -8,7 +9,10 @@ import {
   useProductSummary,
   useUpdateProduct,
 } from '../hooks/useCrm'
+import { getApiErrorMessage } from '../services/api/client'
+import { getPipelineActionPermissions } from '../services/auth/permissions'
 import type { ProductCatalogItem } from '../types'
+import { getQueryStateCopy } from '../utils/queryState'
 import './Products.css'
 
 type ProductFormState = {
@@ -18,7 +22,12 @@ type ProductFormState = {
   sku: string
 }
 
-const EMPTY_FORM: ProductFormState = { name: '', category: '', vendor: '', sku: '' }
+const EMPTY_FORM: ProductFormState = {
+  name: '',
+  category: '',
+  vendor: '',
+  sku: '',
+}
 
 export function Products() {
   const [categoryFilter, setCategoryFilter] = useState('')
@@ -27,29 +36,45 @@ export function Products() {
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editState, setEditState] = useState<ProductFormState>(EMPTY_FORM)
 
+  const { data: currentUser } = useCurrentUser()
+  const { canManageProducts } = getPipelineActionPermissions(currentUser)
   const { data: summary } = useProductSummary()
-  const { data: products = [], isLoading, isError } = useProducts(
-    categoryFilter,
-    vendorFilter,
-  )
+  const {
+    data: products = [],
+    isLoading,
+    isError,
+    error,
+  } = useProducts(categoryFilter, vendorFilter)
   const createProduct = useCreateProduct()
   const updateProduct = useUpdateProduct()
   const deleteProduct = useDeleteProduct()
 
-  const canSubmit = formState.name.trim().length > 0 && formState.category.trim().length > 0
+  const errorState = getQueryStateCopy(error, {
+    title: 'Products unavailable',
+    detail: 'The CRM API could not be reached. Start the backend and refresh.',
+  })
+  const canSubmit =
+    formState.name.trim().length > 0 &&
+    formState.category.trim().length > 0 &&
+    formState.vendor.trim().length > 0 &&
+    formState.sku.trim().length > 0
 
   async function handleCreateProduct(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
     if (!canSubmit) {
       return
     }
-    await createProduct.mutateAsync({
-      name: formState.name.trim(),
-      category: formState.category.trim(),
-      vendor: formState.vendor.trim(),
-      sku: formState.sku.trim(),
-    })
-    setFormState(EMPTY_FORM)
+    try {
+      await createProduct.mutateAsync({
+        name: formState.name.trim(),
+        category: formState.category.trim(),
+        vendor: formState.vendor.trim(),
+        sku: formState.sku.trim(),
+      })
+      setFormState(EMPTY_FORM)
+    } catch {
+      // React Query keeps the error for the inline state below.
+    }
   }
 
   function startEdit(product: ProductCatalogItem) {
@@ -68,27 +93,42 @@ export function Products() {
   }
 
   async function saveEdit(productId: string) {
-    if (!editState.name.trim() || !editState.category.trim()) {
+    if (
+      !editState.name.trim() ||
+      !editState.category.trim() ||
+      !editState.vendor.trim() ||
+      !editState.sku.trim()
+    ) {
       return
     }
-    await updateProduct.mutateAsync({
-      productId,
-      input: {
-        name: editState.name.trim(),
-        category: editState.category.trim(),
-        vendor: editState.vendor.trim(),
-        sku: editState.sku.trim(),
-      },
-    })
-    cancelEdit()
+    try {
+      await updateProduct.mutateAsync({
+        productId,
+        input: {
+          name: editState.name.trim(),
+          category: editState.category.trim(),
+          vendor: editState.vendor.trim(),
+          sku: editState.sku.trim(),
+        },
+      })
+      cancelEdit()
+    } catch {
+      // React Query keeps the error for the inline state below.
+    }
   }
 
   async function handleDelete(product: ProductCatalogItem) {
-    const confirmed = window.confirm(`Remove "${product.name}" from the catalog?`)
+    const confirmed = window.confirm(
+      `Remove "${product.name}" from the catalog?`,
+    )
     if (!confirmed) {
       return
     }
-    await deleteProduct.mutateAsync(product.id)
+    try {
+      await deleteProduct.mutateAsync(product.id)
+    } catch {
+      // React Query keeps the error for the inline state below.
+    }
   }
 
   return (
@@ -96,80 +136,103 @@ export function Products() {
       <div className="products-header">
         <div>
           <h2>Product Catalog</h2>
-          <p>Manage product master data by category and vendor for deal creation and reporting.</p>
+          <p>
+            Manage product master data by category and vendor for deal creation
+            and reporting.
+          </p>
         </div>
       </div>
 
-      <div className="products-layout">
-        <section className="products-sidebar card">
-          <div className="products-sidebar-header">
-            <h3>Add product</h3>
-            <p>Create reusable catalog entries instead of typing product names each time.</p>
-          </div>
+      <div
+        className={`products-layout${
+          canManageProducts ? '' : ' products-layout--read-only'
+        }`}
+      >
+        {canManageProducts && (
+          <section className="products-sidebar card">
+            <div className="products-sidebar-header">
+              <h3>Add product</h3>
+              <p>
+                Create reusable catalog entries instead of typing product names
+                each time.
+              </p>
+            </div>
 
-          <form className="deal-form" onSubmit={handleCreateProduct}>
-            <label className="field">
-              <span>Product name</span>
-              <input
-                value={formState.name}
-                onChange={(event) =>
-                  setFormState((current) => ({ ...current, name: event.target.value }))
-                }
-              />
-            </label>
+            <form className="deal-form" onSubmit={handleCreateProduct}>
+              <label className="field">
+                <span>Product name</span>
+                <input
+                  value={formState.name}
+                  onChange={(event) =>
+                    setFormState((current) => ({
+                      ...current,
+                      name: event.target.value,
+                    }))
+                  }
+                />
+              </label>
 
-            <label className="field">
-              <span>Category</span>
-              <input
-                list="product-categories"
-                value={formState.category}
-                onChange={(event) =>
-                  setFormState((current) => ({
-                    ...current,
-                    category: event.target.value,
-                  }))
-                }
-              />
-            </label>
+              <label className="field">
+                <span>Category</span>
+                <input
+                  list="product-categories"
+                  value={formState.category}
+                  onChange={(event) =>
+                    setFormState((current) => ({
+                      ...current,
+                      category: event.target.value,
+                    }))
+                  }
+                />
+              </label>
 
-            <label className="field">
-              <span>Vendor</span>
-              <input
-                list="product-vendors"
-                value={formState.vendor}
-                onChange={(event) =>
-                  setFormState((current) => ({
-                    ...current,
-                    vendor: event.target.value,
-                  }))
-                }
-              />
-            </label>
+              <label className="field">
+                <span>Vendor</span>
+                <input
+                  list="product-vendors"
+                  value={formState.vendor}
+                  onChange={(event) =>
+                    setFormState((current) => ({
+                      ...current,
+                      vendor: event.target.value,
+                    }))
+                  }
+                />
+              </label>
 
-            <label className="field">
-              <span>SKU / code</span>
-              <input
-                value={formState.sku}
-                onChange={(event) =>
-                  setFormState((current) => ({ ...current, sku: event.target.value }))
-                }
-              />
-            </label>
+              <label className="field">
+                <span>SKU / code</span>
+                <input
+                  value={formState.sku}
+                  onChange={(event) =>
+                    setFormState((current) => ({
+                      ...current,
+                      sku: event.target.value,
+                    }))
+                  }
+                />
+              </label>
 
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={!canSubmit || createProduct.isPending}
-            >
-              <Plus size={15} strokeWidth={2.4} />
-              Add product
-            </button>
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={!canSubmit || createProduct.isPending}
+              >
+                <Plus size={15} strokeWidth={2.4} />
+                Add product
+              </button>
 
-            {createProduct.isError && (
-              <p className="products-error">Unable to save product right now.</p>
-            )}
-          </form>
-        </section>
+              {createProduct.isError && (
+                <p className="products-error">
+                  {getApiErrorMessage(
+                    createProduct.error,
+                    'Unable to save product right now.',
+                  )}
+                </p>
+              )}
+            </form>
+          </section>
+        )}
 
         <section className="products-main">
           <div className="products-filters card">
@@ -204,6 +267,15 @@ export function Products() {
             </label>
           </div>
 
+          {(updateProduct.isError || deleteProduct.isError) && (
+            <p className="products-error">
+              {getApiErrorMessage(
+                updateProduct.error ?? deleteProduct.error,
+                'Unable to update the product catalog right now.',
+              )}
+            </p>
+          )}
+
           {isLoading ? (
             <QueryState
               title="Loading products"
@@ -211,8 +283,8 @@ export function Products() {
             />
           ) : isError ? (
             <QueryState
-              title="Products unavailable"
-              detail="The CRM API could not be reached. Start the backend and refresh."
+              title={errorState.title}
+              detail={errorState.detail}
               tone="danger"
             />
           ) : (
@@ -224,19 +296,24 @@ export function Products() {
                     <th>Category</th>
                     <th>Vendor</th>
                     <th>SKU</th>
-                    <th className="products-actions-col">Actions</th>
+                    {canManageProducts && (
+                      <th className="products-actions-col">Actions</th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
                   {products.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="products-empty">
+                      <td
+                        colSpan={canManageProducts ? 5 : 4}
+                        className="products-empty"
+                      >
                         No products match these filters yet.
                       </td>
                     </tr>
                   )}
                   {products.map((product) =>
-                    editingId === product.id ? (
+                    canManageProducts && editingId === product.id ? (
                       <tr key={product.id} className="products-row-editing">
                         <td>
                           <input
@@ -289,27 +366,29 @@ export function Products() {
                             }
                           />
                         </td>
-                        <td className="products-actions-col">
-                          <div className="products-row-actions">
-                            <button
-                              type="button"
-                              className="products-row-action-btn"
-                              title="Save"
-                              disabled={updateProduct.isPending}
-                              onClick={() => saveEdit(product.id)}
-                            >
-                              <Check size={14} strokeWidth={2.4} />
-                            </button>
-                            <button
-                              type="button"
-                              className="products-row-action-btn"
-                              title="Cancel"
-                              onClick={cancelEdit}
-                            >
-                              <X size={14} strokeWidth={2.4} />
-                            </button>
-                          </div>
-                        </td>
+                        {canManageProducts && (
+                          <td className="products-actions-col">
+                            <div className="products-row-actions">
+                              <button
+                                type="button"
+                                className="products-row-action-btn"
+                                title="Save"
+                                disabled={updateProduct.isPending}
+                                onClick={() => saveEdit(product.id)}
+                              >
+                                <Check size={14} strokeWidth={2.4} />
+                              </button>
+                              <button
+                                type="button"
+                                className="products-row-action-btn"
+                                title="Cancel"
+                                onClick={cancelEdit}
+                              >
+                                <X size={14} strokeWidth={2.4} />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ) : (
                       <tr key={product.id}>
@@ -317,27 +396,29 @@ export function Products() {
                         <td>{product.category}</td>
                         <td>{product.vendor}</td>
                         <td className="products-sku">{product.sku}</td>
-                        <td className="products-actions-col">
-                          <div className="products-row-actions">
-                            <button
-                              type="button"
-                              className="products-row-action-btn"
-                              title="Edit"
-                              onClick={() => startEdit(product)}
-                            >
-                              <Pencil size={14} strokeWidth={2} />
-                            </button>
-                            <button
-                              type="button"
-                              className="products-row-action-btn products-row-action-btn--danger"
-                              title="Delete"
-                              disabled={deleteProduct.isPending}
-                              onClick={() => handleDelete(product)}
-                            >
-                              <Trash2 size={14} strokeWidth={2} />
-                            </button>
-                          </div>
-                        </td>
+                        {canManageProducts && (
+                          <td className="products-actions-col">
+                            <div className="products-row-actions">
+                              <button
+                                type="button"
+                                className="products-row-action-btn"
+                                title="Edit"
+                                onClick={() => startEdit(product)}
+                              >
+                                <Pencil size={14} strokeWidth={2} />
+                              </button>
+                              <button
+                                type="button"
+                                className="products-row-action-btn products-row-action-btn--danger"
+                                title="Delete"
+                                disabled={deleteProduct.isPending}
+                                onClick={() => handleDelete(product)}
+                              >
+                                <Trash2 size={14} strokeWidth={2} />
+                              </button>
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ),
                   )}

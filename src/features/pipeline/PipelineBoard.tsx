@@ -8,10 +8,16 @@ import './pipeline.css'
 interface PipelineBoardProps {
   deals: Deal[]
   stages: PipelineStage[]
+  canMoveDeals: boolean
   onDealSelect: (deal: Deal) => void
 }
 
-export function PipelineBoard({ deals, stages, onDealSelect }: PipelineBoardProps) {
+export function PipelineBoard({
+  deals,
+  stages,
+  canMoveDeals,
+  onDealSelect,
+}: PipelineBoardProps) {
   const moveDealStage = useMoveDealStage()
   const [draggingDealId, setDraggingDealId] = useState<string | null>(null)
   const [hoveredStageId, setHoveredStageId] = useState<string | null>(null)
@@ -70,6 +76,10 @@ export function PipelineBoard({ deals, stages, onDealSelect }: PipelineBoardProp
   }, [boardDeals])
 
   async function handleDrop(targetStageId: string) {
+    if (!canMoveDeals) {
+      return
+    }
+
     const deal = boardDeals.find((item) => item.id === draggingDealId)
     const targetStage = stageById[targetStageId]
     const currentStage = deal ? stageById[deal.stage] : undefined
@@ -77,7 +87,12 @@ export function PipelineBoard({ deals, stages, onDealSelect }: PipelineBoardProp
     setHoveredStageId(null)
     setDraggingDealId(null)
 
-    if (!deal || !targetStage || !currentStage || deal.stage === targetStageId) {
+    if (
+      !deal ||
+      !targetStage ||
+      !currentStage ||
+      deal.stage === targetStageId
+    ) {
       return
     }
 
@@ -151,6 +166,7 @@ export function PipelineBoard({ deals, stages, onDealSelect }: PipelineBoardProp
             stage={stage}
             deals={boardDeals.filter((deal) => deal.stage === stage.id)}
             onDealSelect={onDealSelect}
+            canMoveDeals={canMoveDeals}
             isDropTarget={hoveredStageId === stage.id}
             isBusy={moveDealStage.isPending}
             onDragDeal={(dealId) => setDraggingDealId(dealId)}

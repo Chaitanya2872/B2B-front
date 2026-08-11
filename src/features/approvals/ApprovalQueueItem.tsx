@@ -2,18 +2,47 @@ import type { Deal } from '../../types'
 import { usePipelineStages, useUpdateApprovalStatus } from '../../hooks/useCrm'
 import { Avatar } from '../../components/ui/Avatar'
 import { ApprovalTrack } from '../../components/ui/ApprovalTrack'
-import { formatApprovalRole, formatCurrency, timeAgo } from '../../utils/helpers'
+import { getApiErrorMessage } from '../../services/api/client'
+import type { CurrentUser } from '../../services/auth/auth'
+import { canActOnApprovalRole } from '../../services/auth/permissions'
+import {
+  formatApprovalRole,
+  formatCurrency,
+  timeAgo,
+} from '../../utils/helpers'
 import './approvals.css'
 
 interface ApprovalQueueItemProps {
   deal: Deal
+  currentUser: CurrentUser | undefined
+  canReviewApprovals: boolean
 }
 
-export function ApprovalQueueItem({ deal }: ApprovalQueueItemProps) {
+export function ApprovalQueueItem({
+  deal,
+  currentUser,
+  canReviewApprovals,
+}: ApprovalQueueItemProps) {
   const updateApproval = useUpdateApprovalStatus()
   const { data: stages = [] } = usePipelineStages()
   const stage = stages.find((item) => item.id === deal.stage)
   const pendingStep = deal.approvals.find((step) => step.status === 'pending')
+  const canAct =
+    pendingStep &&
+    canReviewApprovals &&
+    canActOnApprovalRole(currentUser, pendingStep.role)
+
+  function updatePendingApproval(status: 'approved' | 'rejected') {
+    if (!pendingStep || !canAct) {
+      return
+    }
+
+    updateApproval.mutate({
+      dealId: deal.id,
+      role: pendingStep.role,
+      status,
+    })
+  }
 
   return (
     <div className="approval-item card">
@@ -48,34 +77,36 @@ export function ApprovalQueueItem({ deal }: ApprovalQueueItemProps) {
             <span className="approval-item-action-label">
               Awaiting <strong>{formatApprovalRole(pendingStep.role)}</strong>
             </span>
-            <div className="approval-item-action-buttons">
-              <button
-                className="btn btn-success btn-sm"
-                disabled={updateApproval.isPending}
-                onClick={() =>
-                  updateApproval.mutate({
-                    dealId: deal.id,
-                    role: pendingStep.role,
-                    status: 'approved',
-                  })
-                }
-              >
-                Approve
-              </button>
-              <button
-                className="btn btn-danger btn-sm"
-                disabled={updateApproval.isPending}
-                onClick={() =>
-                  updateApproval.mutate({
-                    dealId: deal.id,
-                    role: pendingStep.role,
-                    status: 'rejected',
-                  })
-                }
-              >
-                Reject
-              </button>
-            </div>
+            {canAct ? (
+              <div className="approval-item-action-buttons">
+                <button
+                  className="btn btn-success btn-sm"
+                  disabled={updateApproval.isPending}
+                  onClick={() => updatePendingApproval('approved')}
+                >
+                  Approve
+                </button>
+                <button
+                  className="btn btn-danger btn-sm"
+                  disabled={updateApproval.isPending}
+                  onClick={() => updatePendingApproval('rejected')}
+                >
+                  Reject
+                </button>
+              </div>
+            ) : (
+              <span className="approval-item-action-label">
+                Approval permission required.
+              </span>
+            )}
+            {updateApproval.isError && (
+              <span className="approval-item-error">
+                {getApiErrorMessage(
+                  updateApproval.error,
+                  'Unable to update this approval.',
+                )}
+              </span>
+            )}
           </div>
         )}
       </div>

@@ -21,6 +21,10 @@
   min-height: 0;
 }
 
+.products-layout--read-only {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .products-sidebar,
 .products-main {
   min-height: 0;

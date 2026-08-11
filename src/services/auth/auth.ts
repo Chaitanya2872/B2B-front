@@ -1,16 +1,32 @@
-export interface AuthUser {
+import {
+  apiClient,
+  clearAuthTokens,
+  ensureApiSession,
+  getRefreshToken,
+  hasStoredSession,
+  rawApiClient,
+  storeAuthTokens,
+  toApiError,
+} from '../api/client'
+
+export interface CurrentUser {
   id: string
   name: string
-  initials: string
-  role: string
-  identity: string
+  email: string
+  roles: string[]
+  permissions: string[]
 }
 
-export interface AuthSession {
-  token: string
-  user: AuthUser
+export interface AuthTokens {
+  accessToken: string
+  refreshToken: string
+  accessTokenExpiresAt?: string
+  refreshTokenExpiresAt?: string
+  user: CurrentUser
+}
+
+export interface AuthSession extends AuthTokens {
   rememberMe: boolean
-  createdAt: string
 }
 
 export interface LoginCredentials {
@@ -19,81 +35,7 @@ export interface LoginCredentials {
   rememberMe: boolean
 }
 
-const AUTH_STORAGE_KEY = 'acs-sales-os-auth-session'
-const DEMO_LOGIN_DELAY_MS = 650
-
-function getStorage(kind: 'local' | 'session') {
-  if (typeof window === 'undefined') {
-    return null
-  }
-
-  try {
-    return kind === 'local' ? window.localStorage : window.sessionStorage
-  } catch {
-    return null
-  }
-}
-
-function isAuthUser(value: unknown): value is AuthUser {
-  if (!value || typeof value !== 'object') {
-    return false
-  }
-
-  const user = value as Partial<AuthUser>
-  return (
-    typeof user.id === 'string' &&
-    typeof user.name === 'string' &&
-    typeof user.initials === 'string' &&
-    typeof user.role === 'string' &&
-    typeof user.identity === 'string'
-  )
-}
-
-function isAuthSession(value: unknown): value is AuthSession {
-  if (!value || typeof value !== 'object') {
-    return false
-  }
-
-  const session = value as Partial<AuthSession>
-  return (
-    typeof session.token === 'string' &&
-    typeof session.rememberMe === 'boolean' &&
-    typeof session.createdAt === 'string' &&
-    isAuthUser(session.user)
-  )
-}
-
-function parseSession(rawSession: string | null) {
-  if (!rawSession) {
-    return null
-  }
-
-  try {
-    const parsed: unknown = JSON.parse(rawSession)
-    return isAuthSession(parsed) ? parsed : null
-  } catch {
-    return null
-  }
-}
-
-function toDisplayName(identity: string) {
-  const baseName = identity.includes('@') ? identity.split('@')[0] : identity
-  const words = baseName
-    .replace(/[_-]+/g, '.')
-    .split('.')
-    .map((word) => word.trim())
-    .filter(Boolean)
-
-  if (!words.length) {
-    return 'ACS User'
-  }
-
-  return words
-    .map((word) => `${word.charAt(0).toUpperCase()}${word.slice(1)}`)
-    .join(' ')
-}
-
-function toInitials(name: string) {
+export function initialsFromName(name: string) {
   const initials = name
     .split(' ')
     .filter(Boolean)
@@ -104,61 +46,73 @@ function toInitials(name: string) {
   return initials || 'AU'
 }
 
-function createSession(identity: string, rememberMe: boolean): AuthSession {
-  const normalizedIdentity = identity.trim()
-  const name = toDisplayName(normalizedIdentity)
+export function displayRole(user: CurrentUser | null | undefined) {
+  const role = user?.roles?.[0]
+  if (!role) return 'B2B User'
 
-  return {
-    token: `acs-demo-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-    rememberMe,
-    createdAt: new Date().toISOString(),
-    user: {
-      id: normalizedIdentity.toLowerCase(),
-      name,
-      initials: toInitials(name),
-      role: 'Account Manager',
-      identity: normalizedIdentity,
-    },
-  }
-}
-
-function persistSession(session: AuthSession) {
-  const local = getStorage('local')
-  const sessionStore = getStorage('session')
-  const target = session.rememberMe ? local : sessionStore
-  const other = session.rememberMe ? sessionStore : local
-
-  other?.removeItem(AUTH_STORAGE_KEY)
-  target?.setItem(AUTH_STORAGE_KEY, JSON.stringify(session))
-}
-
-export function getSession() {
-  const sessionStore = getStorage('session')
-  const local = getStorage('local')
-
-  return (
-    parseSession(sessionStore?.getItem(AUTH_STORAGE_KEY) ?? null) ??
-    parseSession(local?.getItem(AUTH_STORAGE_KEY) ?? null)
-  )
+  return role
+    .replace(/^ROLE_/, '')
+    .toLowerCase()
+    .split('_')
+    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(' ')
 }
 
 export function isAuthenticated() {
-  return getSession() !== null
+  return hasStoredSession()
 }
 
 export async function login(credentials: LoginCredentials) {
-  await new Promise((resolve) => setTimeout(resolve, DEMO_LOGIN_DELAY_MS))
-
-  if (credentials.password === 'error') {
-    throw new Error('Demo credentials rejected')
+  try {
+    const response = await rawApiClient.post<AuthTokens>('/auth/login', {
+      email: credentials.identity.trim(),
+      password: credentials.password,
+    })
+    storeAuthTokens(response.data, credentials.rememberMe)
+    return { ...response.data, rememberMe: credentials.rememberMe }
+  } catch (error) {
+    throw toApiError(error, 'Email or password was not accepted.')
   }
-
-  const session = createSession(credentials.identity, credentials.rememberMe)
-  persistSession(session)
-  return session
 }
 
-export function logout() {
-  getStorage('local')?.removeItem(AUTH_STORAGE_KEY)
-  getStorage('session')?.removeItem(AUTH_STORAGE_KEY)
+export async function refresh() {
+  const refreshToken = getRefreshToken()
+  if (!refreshToken) {
+    throw toApiError(
+      new Error('No refresh token available.'),
+      'No session found.',
+    )
+  }
+
+  try {
+    const response = await rawApiClient.post<AuthTokens>('/auth/refresh', {
+      refreshToken,
+    })
+    storeAuthTokens(response.data)
+    return response.data
+  } catch (error) {
+    throw toApiError(error, 'Unable to refresh the session.')
+  }
+}
+
+export async function fetchCurrentUser() {
+  try {
+    await ensureApiSession()
+    const response = await apiClient.get<CurrentUser>('/auth/me')
+    return response.data
+  } catch (error) {
+    throw toApiError(error, 'Unable to load the current user.')
+  }
+}
+
+export async function logout() {
+  const refreshToken = getRefreshToken()
+
+  try {
+    if (refreshToken) {
+      await apiClient.post('/auth/logout', { refreshToken })
+    }
+  } finally {
+    clearAuthTokens()
+  }
 }

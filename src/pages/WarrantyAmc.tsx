@@ -3,6 +3,7 @@ import { Badge } from '../components/ui/Badge'
 import { QueryState } from '../components/ui/QueryState'
 import { useWarrantyItems } from '../hooks/useCrm'
 import { formatDate } from '../utils/helpers'
+import { getQueryStateCopy } from '../utils/queryState'
 import type { AmcStatus, WarrantyStatus } from '../types'
 import './WarrantyAmc.css'
 
@@ -31,13 +32,20 @@ const AMC_LABEL: Record<AmcStatus, string> = {
 }
 
 export function WarrantyAmc() {
-  const { data: items = [], isLoading, isError } = useWarrantyItems()
+  const { data: items = [], isLoading, isError, error } = useWarrantyItems()
+  const errorState = getQueryStateCopy(error, {
+    title: 'Warranty records unavailable',
+    detail: 'The CRM API could not be reached. Start the backend and refresh.',
+  })
 
   return (
     <div className="warranty-page">
       <div className="warranty-header">
         <h2>Warranty &amp; AMC</h2>
-        <p>Serial capture, OEM registration and renewal tracking for delivered items.</p>
+        <p>
+          Serial capture, OEM registration and renewal tracking for delivered
+          items.
+        </p>
       </div>
 
       {isLoading ? (
@@ -47,9 +55,14 @@ export function WarrantyAmc() {
         />
       ) : isError ? (
         <QueryState
-          title="Warranty records unavailable"
-          detail="The CRM API could not be reached. Start the backend and refresh."
+          title={errorState.title}
+          detail={errorState.detail}
           tone="danger"
+        />
+      ) : items.length === 0 ? (
+        <QueryState
+          title="No warranty records"
+          detail="Delivered serials and AMC renewals will appear here."
         />
       ) : (
         <div className="warranty-table-wrap card">
@@ -71,7 +84,8 @@ export function WarrantyAmc() {
                   <td>{item.product}</td>
                   <td className="warranty-serial">{item.serialNumber}</td>
                   <td className="warranty-period">
-                    {formatDate(item.startDate)} &rarr; {formatDate(item.endDate)}
+                    {formatDate(item.startDate)} &rarr;{' '}
+                    {formatDate(item.endDate)}
                   </td>
                   <td>
                     <Badge

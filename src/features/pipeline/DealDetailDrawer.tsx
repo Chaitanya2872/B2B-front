@@ -6,15 +6,22 @@ import {
   useUpdateDeal,
 } from '../../hooks/useCrm'
 import type { Deal } from '../../types'
+import { getApiErrorMessage } from '../../services/api/client'
 import { formatDate, formatStageLabel, timeAgo } from '../../utils/helpers'
+import { buildDealUpdateInput } from './dealPayload'
 import './PipelinePanels.css'
 
 interface DealDetailDrawerProps {
   deal: Deal
+  canEdit: boolean
   onClose: () => void
 }
 
-export function DealDetailDrawer({ deal, onClose }: DealDetailDrawerProps) {
+export function DealDetailDrawer({
+  deal,
+  canEdit,
+  onClose,
+}: DealDetailDrawerProps) {
   const updateDeal = useUpdateDeal()
   const { data: history = [] } = useDealStageHistory(deal.id)
   const { data: products = [] } = useProducts()
@@ -37,28 +44,27 @@ export function DealDetailDrawer({ deal, onClose }: DealDetailDrawerProps) {
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!canEdit) {
+      return
+    }
 
-    await updateDeal.mutateAsync({
-      dealId: deal.id,
-      input: {
-        company: formState.company,
-        contact: formState.contact,
-        product: formState.product,
-        value: Number(formState.value || 0),
-        accountManager: formState.accountManager,
-        priority: formState.priority,
-        expectedClosureDate: formState.expectedClosureDate
-          ? new Date(formState.expectedClosureDate).toISOString()
-          : '',
-        nextActivity: formState.nextActivity,
-        nextActivityDueDate: formState.nextActivityDueDate
-          ? new Date(formState.nextActivityDueDate).toISOString()
-          : '',
-        oemVendor: formState.oemVendor,
-        extraFields: formState.extraFields,
-      },
-    })
-    onClose()
+    try {
+      await updateDeal.mutateAsync({
+        dealId: deal.id,
+        input: buildDealUpdateInput(deal, {
+          ...formState,
+          expectedClosureDate: formState.expectedClosureDate
+            ? new Date(formState.expectedClosureDate).toISOString()
+            : '',
+          nextActivityDueDate: formState.nextActivityDueDate
+            ? new Date(formState.nextActivityDueDate).toISOString()
+            : '',
+        }),
+      })
+      onClose()
+    } catch {
+      // React Query keeps the error for the inline state below.
+    }
   }
 
   return (
@@ -110,7 +116,10 @@ export function DealDetailDrawer({ deal, onClose }: DealDetailDrawerProps) {
               <p>Keep field quality high before moving stages.</p>
             </div>
 
-            <div className="deal-form">
+            <fieldset
+              className="deal-form deal-form-fieldset"
+              disabled={!canEdit}
+            >
               <label className="field">
                 <span>Company</span>
                 <input
@@ -268,16 +277,22 @@ export function DealDetailDrawer({ deal, onClose }: DealDetailDrawerProps) {
                   }
                 />
               </label>
-            </div>
+            </fieldset>
           </section>
 
           {Object.keys(formState.extraFields).length > 0 && (
             <section className="drawer-section">
               <div className="drawer-section-header">
                 <h4>Imported dynamic fields</h4>
-                <p>These came from Excel headers that are not part of the fixed schema.</p>
+                <p>
+                  These came from Excel headers that are not part of the fixed
+                  schema.
+                </p>
               </div>
-              <div className="deal-form">
+              <fieldset
+                className="deal-form deal-form-fieldset"
+                disabled={!canEdit}
+              >
                 {Object.entries(formState.extraFields).map(([key, value]) => (
                   <label key={key} className="field">
                     <span>{key}</span>
@@ -295,7 +310,7 @@ export function DealDetailDrawer({ deal, onClose }: DealDetailDrawerProps) {
                     />
                   </label>
                 ))}
-              </div>
+              </fieldset>
             </section>
           )}
 
@@ -309,9 +324,13 @@ export function DealDetailDrawer({ deal, onClose }: DealDetailDrawerProps) {
                 <p className="history-empty">No recorded stage movement yet.</p>
               ) : (
                 history.map((item, index) => (
-                  <div key={`${item.changedAt}-${index}`} className="history-item">
+                  <div
+                    key={`${item.changedAt}-${index}`}
+                    className="history-item"
+                  >
                     <strong>
-                      {formatStageLabel(item.fromStage)} to {formatStageLabel(item.toStage)}
+                      {formatStageLabel(item.fromStage)} to{' '}
+                      {formatStageLabel(item.toStage)}
                     </strong>
                     <span>
                       {formatDate(item.changedAt)} · {item.changedBy}
@@ -327,18 +346,27 @@ export function DealDetailDrawer({ deal, onClose }: DealDetailDrawerProps) {
             <button type="button" className="btn btn-ghost" onClick={onClose}>
               Close
             </button>
-            <button
-              type="submit"
-              className="btn btn-primary"
-              disabled={updateDeal.isPending}
-            >
-              Save changes
-            </button>
+            {canEdit ? (
+              <button
+                type="submit"
+                className="btn btn-primary"
+                disabled={updateDeal.isPending}
+              >
+                Save changes
+              </button>
+            ) : (
+              <span className="permission-note">
+                Deal management permission is required to save changes.
+              </span>
+            )}
           </div>
 
           {updateDeal.isError && (
             <p className="drawer-error">
-              We couldn&apos;t save the deal. Check required fields and try again.
+              {getApiErrorMessage(
+                updateDeal.error,
+                'We could not save the deal. Check required fields and try again.',
+              )}
             </p>
           )}
         </form>

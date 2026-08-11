@@ -1,28 +1,29 @@
 import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
-import { Boxes, Eye, EyeOff, LoaderCircle, LogIn, ShieldCheck } from 'lucide-react'
+import {
+  Boxes,
+  Eye,
+  EyeOff,
+  LoaderCircle,
+  LogIn,
+  ShieldCheck,
+} from 'lucide-react'
 import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router-dom'
 import { z } from 'zod'
-import { login } from '../services/auth/auth'
+import { getApiErrorMessage } from '../services/api/client'
+import { useLogin } from '../hooks/useAuth'
 import './Login.css'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-const usernamePattern = /^[a-zA-Z0-9._-]+$/
 
 const loginSchema = z.object({
   identity: z
     .string()
     .trim()
-    .min(2, 'Enter a username or email')
-    .max(80, 'Keep username or email under 80 characters')
-    .refine(
-      (value) =>
-        value.includes('@')
-          ? emailPattern.test(value)
-          : usernamePattern.test(value) && value.length <= 64,
-      'Enter a valid email or username',
-    ),
+    .min(3, 'Enter your email')
+    .max(160, 'Keep email under 160 characters')
+    .refine((value) => emailPattern.test(value), 'Enter a valid email'),
   password: z
     .string()
     .min(5, 'Password must be at least 5 characters')
@@ -35,6 +36,7 @@ type LoginFormOutput = z.output<typeof loginSchema>
 
 export function Login() {
   const navigate = useNavigate()
+  const loginMutation = useLogin()
   const [showPassword, setShowPassword] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
   const [forgotMessage, setForgotMessage] = useState<string | null>(null)
@@ -63,11 +65,11 @@ export function Login() {
       setForgotMessage(null)
 
       try {
-        await login(values)
+        await loginMutation.mutateAsync(values)
         navigate('/', { replace: true })
-      } catch {
+      } catch (error) {
         setLoginError(
-          'Demo sign-in rejected that password. Try any password except "error".',
+          getApiErrorMessage(error, 'Email or password was not accepted.'),
         )
       }
     },
@@ -132,12 +134,12 @@ export function Login() {
 
           <form className="login-form" onSubmit={onSubmit} noValidate>
             <div className="login-field">
-              <label htmlFor="login-identity">Username or email</label>
+              <label htmlFor="login-identity">Email</label>
               <input
                 {...identityField}
                 id="login-identity"
                 type="text"
-                autoComplete="username"
+                autoComplete="email"
                 placeholder="ravi.teja@acs.example"
                 aria-invalid={errors.identity ? 'true' : 'false'}
               />
@@ -205,9 +207,9 @@ export function Login() {
             <button
               type="submit"
               className="btn btn-primary login-submit"
-              disabled={isSubmitting}
+              disabled={isSubmitting || loginMutation.isPending}
             >
-              {isSubmitting ? (
+              {isSubmitting || loginMutation.isPending ? (
                 <>
                   <LoaderCircle
                     className="login-submit-spinner"

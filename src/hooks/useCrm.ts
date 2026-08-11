@@ -33,9 +33,11 @@ import type {
 
 export const crmKeys = {
   all: ['crm'] as const,
+  dealLists: () => [...crmKeys.all, 'deals'] as const,
   deals: (search = '') => [...crmKeys.all, 'deals', search] as const,
   approvals: () => [...crmKeys.all, 'approvals'] as const,
   stages: () => [...crmKeys.all, 'stages'] as const,
+  productLists: () => [...crmKeys.all, 'products'] as const,
   products: (category = '', vendor = '') =>
     [...crmKeys.all, 'products', category, vendor] as const,
   productSummary: () => [...crmKeys.all, 'product-summary'] as const,
@@ -43,7 +45,31 @@ export const crmKeys = {
   summary: () => [...crmKeys.all, 'summary'] as const,
   trend: () => [...crmKeys.all, 'trend'] as const,
   activity: () => [...crmKeys.all, 'activity'] as const,
-  stageHistory: (dealId: string) => [...crmKeys.all, 'stage-history', dealId] as const,
+  stageHistory: (dealId: string) =>
+    [...crmKeys.all, 'stage-history', dealId] as const,
+}
+
+function invalidateDealReadModels(
+  queryClient: ReturnType<typeof useQueryClient>,
+  dealId?: string,
+) {
+  void queryClient.invalidateQueries({ queryKey: crmKeys.dealLists() })
+  void queryClient.invalidateQueries({ queryKey: crmKeys.approvals() })
+  void queryClient.invalidateQueries({ queryKey: crmKeys.summary() })
+  void queryClient.invalidateQueries({ queryKey: crmKeys.trend() })
+  void queryClient.invalidateQueries({ queryKey: crmKeys.activity() })
+  if (dealId) {
+    void queryClient.invalidateQueries({
+      queryKey: crmKeys.stageHistory(dealId),
+    })
+  }
+}
+
+function invalidateProductReadModels(
+  queryClient: ReturnType<typeof useQueryClient>,
+) {
+  void queryClient.invalidateQueries({ queryKey: crmKeys.productLists() })
+  void queryClient.invalidateQueries({ queryKey: crmKeys.productSummary() })
 }
 
 export function useDeals(search?: string) {
@@ -127,7 +153,7 @@ export function useCreateDeal() {
   return useMutation({
     mutationFn: (input: NewDealInput) => createDeal(input),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: crmKeys.all })
+      invalidateDealReadModels(queryClient)
     },
   })
 }
@@ -143,8 +169,8 @@ export function useUpdateDeal() {
       dealId: string
       input: DealUpdateInput
     }) => updateDeal(dealId, input),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: crmKeys.all })
+    onSuccess: (_deal, variables) => {
+      invalidateDealReadModels(queryClient, variables.dealId)
     },
   })
 }
@@ -162,8 +188,8 @@ export function useUpdateApprovalStatus() {
       role: ApprovalRole
       status: ApprovalStatus
     }) => updateApprovalStatus(dealId, role, status),
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: crmKeys.all })
+    onSuccess: (_deal, variables) => {
+      invalidateDealReadModels(queryClient, variables.dealId)
     },
   })
 }
@@ -174,7 +200,7 @@ export function useCreateProduct() {
   return useMutation({
     mutationFn: createProduct,
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: crmKeys.all })
+      invalidateProductReadModels(queryClient)
     },
   })
 }
@@ -191,7 +217,7 @@ export function useUpdateProduct() {
       input: NewProductInput
     }) => updateProduct(productId, input),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: crmKeys.all })
+      invalidateProductReadModels(queryClient)
     },
   })
 }
@@ -202,7 +228,7 @@ export function useDeleteProduct() {
   return useMutation({
     mutationFn: (productId: string) => deleteProduct(productId),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: crmKeys.all })
+      invalidateProductReadModels(queryClient)
     },
   })
 }
@@ -219,7 +245,7 @@ export function useImportDeals() {
       defaultStage: string
     }) => importDealsExcel(file, defaultStage),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: crmKeys.all })
+      invalidateDealReadModels(queryClient)
     },
   })
 }
@@ -239,7 +265,7 @@ export function useMoveDealStage() {
       await queryClient.cancelQueries({ queryKey: crmKeys.all })
 
       const previousDeals = queryClient.getQueriesData<Deal[]>({
-        queryKey: [...crmKeys.all, 'deals'],
+        queryKey: crmKeys.dealLists(),
       })
 
       previousDeals.forEach(([queryKey, deals]) => {
@@ -268,8 +294,8 @@ export function useMoveDealStage() {
         queryClient.setQueryData(queryKey, deals)
       })
     },
-    onSettled: () => {
-      void queryClient.invalidateQueries({ queryKey: crmKeys.all })
+    onSettled: (_deal, _error, variables) => {
+      invalidateDealReadModels(queryClient, variables.dealId)
     },
   })
 }
@@ -286,7 +312,8 @@ export function useUpdatePipelineStage() {
       input: PipelineStageUpdateRequest
     }) => updatePipelineStage(stageId, input),
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: crmKeys.all })
+      void queryClient.invalidateQueries({ queryKey: crmKeys.stages() })
+      invalidateDealReadModels(queryClient)
     },
   })
 }

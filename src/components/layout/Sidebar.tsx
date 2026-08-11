@@ -1,13 +1,20 @@
 import { NavLink } from 'react-router-dom'
 import { Boxes } from 'lucide-react'
 import { NAV_ITEMS } from '../../constants'
+import { useCurrentUser } from '../../hooks/useAuth'
 import { useDashboardSummary } from '../../hooks/useCrm'
+import { displayRole, initialsFromName } from '../../services/auth/auth'
 import { Avatar } from '../ui/Avatar'
 import './Sidebar.css'
 
 export function Sidebar() {
+  const { data: currentUser } = useCurrentUser()
   const { data: summary } = useDashboardSummary()
   const pendingApprovals = summary?.pendingApprovals ?? 0
+  const person = {
+    name: currentUser?.name ?? 'B2B User',
+    initials: initialsFromName(currentUser?.name ?? 'B2B User'),
+  }
 
   return (
     <aside className="sidebar">
@@ -43,10 +50,10 @@ export function Sidebar() {
       </nav>
 
       <div className="sidebar-user">
-        <Avatar person={{ name: 'Ravi Teja', initials: 'RT' }} size={32} />
+        <Avatar person={person} size={32} />
         <div className="sidebar-user-info">
-          <span className="sidebar-user-name">Ravi Teja</span>
-          <span className="sidebar-user-role">Account Manager</span>
+          <span className="sidebar-user-name">{person.name}</span>
+          <span className="sidebar-user-role">{displayRole(currentUser)}</span>
         </div>
       </div>
     </aside>

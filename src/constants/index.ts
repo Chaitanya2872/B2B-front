@@ -7,6 +7,7 @@ import {
   type LucideIcon,
 } from 'lucide-react'
 import type { ApprovalRole } from '../types'
+import { B2B_APPROVAL_ROLES } from '../services/auth/permissions'
 
 export interface NavItem {
   to: string
@@ -22,7 +23,10 @@ export const NAV_ITEMS: NavItem[] = [
   { to: '/warranty', label: 'Warranty & AMC', icon: ShieldCheck },
 ]
 
-export const APPROVAL_FLOW: Record<'quotation' | 'order_placed', ApprovalRole[]> = {
-  quotation: ['Solution', 'RSM', 'Finance', 'BusinessHead'],
+export const APPROVAL_FLOW: Record<
+  'quotation' | 'order_placed',
+  ApprovalRole[]
+> = {
+  quotation: [...B2B_APPROVAL_ROLES],
   order_placed: ['RSM', 'Finance'],
 }

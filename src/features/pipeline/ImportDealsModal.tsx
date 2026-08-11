@@ -1,6 +1,7 @@
 import { useRef, useState, type ChangeEvent, type FormEvent } from 'react'
 import { X, Upload, FileSpreadsheet } from 'lucide-react'
 import { useImportDeals } from '../../hooks/useCrm'
+import { getApiErrorMessage } from '../../services/api/client'
 import type { PipelineStage } from '../../types'
 import './AddDealModal.css'
 
@@ -26,7 +27,11 @@ export function ImportDealsModal({ onClose, stages }: ImportDealsModalProps) {
       return
     }
 
-    await importDeals.mutateAsync({ file, defaultStage })
+    try {
+      await importDeals.mutateAsync({ file, defaultStage })
+    } catch {
+      // React Query keeps the error for the inline state below.
+    }
   }
 
   return (
@@ -67,8 +72,8 @@ export function ImportDealsModal({ onClose, stages }: ImportDealsModalProps) {
               <span className="btn btn-ghost btn-sm file-drop-btn">Browse</span>
             </button>
             <small className="field-help">
-              Known columns are mapped automatically. Unknown headers are stored as
-              dynamic fields in PostgreSQL.
+              Known columns are mapped automatically. Unknown headers are stored
+              as dynamic fields in PostgreSQL.
             </small>
           </label>
 
@@ -105,18 +110,24 @@ export function ImportDealsModal({ onClose, stages }: ImportDealsModalProps) {
               disabled={!file || importDeals.isPending}
             >
               <Upload size={15} strokeWidth={2.2} />
-              {importDeals.isPending ? 'Importing…' : 'Import workbook'}
+              {importDeals.isPending ? 'Importing...' : 'Import workbook'}
             </button>
           </div>
 
           {importDeals.isError && (
             <div className="form-error">
-              We couldn&apos;t import the workbook. Please check the file and backend.
+              {getApiErrorMessage(
+                importDeals.error,
+                'We could not import the workbook. Please check the file and backend.',
+              )}
             </div>
           )}
 
           {importDeals.data && (
-            <div className="card" style={{ padding: '1rem', marginTop: '0.5rem' }}>
+            <div
+              className="card"
+              style={{ padding: '1rem', marginTop: '0.5rem' }}
+            >
               <strong style={{ display: 'block', marginBottom: '0.35rem' }}>
                 Import complete
               </strong>
