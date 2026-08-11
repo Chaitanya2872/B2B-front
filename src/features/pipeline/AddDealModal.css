@@ -211,6 +211,38 @@
   pointer-events: none;
 }
 
+.import-format-guide {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-hover);
+}
+
+.import-format-guide > div {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.import-format-guide small {
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+
+.import-format-guide .btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .import-format-guide {
+    flex-direction: column;
+  }
+}
+
 .stage-select {
   position: relative;
   display: flex;

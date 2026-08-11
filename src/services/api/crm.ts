@@ -179,6 +179,13 @@ export async function importDealsExcel(file: File, defaultStage: string) {
   return response.data
 }
 
+export async function downloadDealImportTemplate() {
+  const response = await apiClient.get<Blob>('/deals/import-excel/template', {
+    responseType: 'blob',
+  })
+  return response.data
+}
+
 export async function moveDealStage(dealId: string, input: StageMoveRequest) {
   const response = await apiClient.patch<RawDeal>(
     `/deals/${dealId}/stage`,

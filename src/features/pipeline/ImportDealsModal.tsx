@@ -1,7 +1,8 @@
 import { useRef, useState, type ChangeEvent, type FormEvent } from 'react'
-import { X, Upload, FileSpreadsheet } from 'lucide-react'
+import { X, Upload, FileSpreadsheet, Download } from 'lucide-react'
 import { useImportDeals } from '../../hooks/useCrm'
 import { getApiErrorMessage } from '../../services/api/client'
+import { downloadDealImportTemplate } from '../../services/api/crm'
 import type { PipelineStage } from '../../types'
 import './AddDealModal.css'
 
@@ -13,6 +14,8 @@ interface ImportDealsModalProps {
 export function ImportDealsModal({ onClose, stages }: ImportDealsModalProps) {
   const [file, setFile] = useState<File | null>(null)
   const [defaultStage, setDefaultStage] = useState(stages[0]?.id ?? 'suspect')
+  const [isDownloading, setIsDownloading] = useState(false)
+  const [downloadError, setDownloadError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const importDeals = useImportDeals()
   const selectedStage = stages.find((stage) => stage.id === defaultStage)
@@ -34,6 +37,28 @@ export function ImportDealsModal({ onClose, stages }: ImportDealsModalProps) {
     }
   }
 
+  async function handleTemplateDownload() {
+    setIsDownloading(true)
+    setDownloadError(null)
+    try {
+      const workbook = await downloadDealImportTemplate()
+      const url = URL.createObjectURL(workbook)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = 'CRM-Deals-Import-Sample.xlsx'
+      document.body.appendChild(link)
+      link.click()
+      link.remove()
+      URL.revokeObjectURL(url)
+    } catch (error) {
+      setDownloadError(
+        getApiErrorMessage(error, 'Could not download the sample workbook.'),
+      )
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
@@ -51,6 +76,28 @@ export function ImportDealsModal({ onClose, stages }: ImportDealsModalProps) {
         </div>
 
         <form className="deal-form" onSubmit={handleSubmit}>
+          <div className="import-format-guide">
+            <div>
+              <strong>Use the prepared Excel format</strong>
+              <small>
+                Required: Prospect and Solution. Contact Person, Current Stage,
+                Value (₹ Lakhs), Est. Closure and Probability are mapped
+                automatically. Reference and Remarks are retained as extra fields.
+              </small>
+            </div>
+            <button
+              type="button"
+              className="btn btn-ghost btn-sm"
+              onClick={handleTemplateDownload}
+              disabled={isDownloading}
+            >
+              <Download size={14} strokeWidth={2} />
+              {isDownloading ? 'Downloading...' : 'Download sample'}
+            </button>
+          </div>
+
+          {downloadError && <div className="form-error">{downloadError}</div>}
+
           <label className="field">
             <span>Excel file</span>
             <input
