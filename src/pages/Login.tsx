@@ -1,11 +1,17 @@
 import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
+  ArrowRight,
   Boxes,
+  CheckCircle2,
   Eye,
   EyeOff,
+  FileText,
   LoaderCircle,
   LogIn,
+  Lock,
+  Mail,
+  RefreshCw,
   ShieldCheck,
 } from 'lucide-react'
 import { useForm } from 'react-hook-form'
@@ -16,14 +22,20 @@ import { useLogin } from '../hooks/useAuth'
 import './Login.css'
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+const usernamePattern = /^[a-zA-Z0-9._-]+$/
+const passwordResetMessage =
+  'Password reset is not connected yet. Contact your ACS admin for access help.'
 
 const loginSchema = z.object({
   identity: z
     .string()
     .trim()
-    .min(3, 'Enter your email')
-    .max(160, 'Keep email under 160 characters')
-    .refine((value) => emailPattern.test(value), 'Enter a valid email'),
+    .min(3, 'Enter your username or email')
+    .max(160, 'Keep username or email under 160 characters')
+    .refine(
+      (value) => emailPattern.test(value) || usernamePattern.test(value),
+      'Enter a valid username or email',
+    ),
   password: z
     .string()
     .min(5, 'Password must be at least 5 characters')
@@ -78,157 +90,232 @@ export function Login() {
 
   return (
     <main className="login-page">
-      <section className="login-workspace" aria-label="ACS Sales OS sign in">
-        <aside className="login-brand-panel card">
-          <div className="login-brand">
-            <span className="login-brand-mark">
-              <Boxes size={20} strokeWidth={2.2} />
-            </span>
-            <div className="login-brand-copy">
-              <span className="login-brand-name">ACS</span>
-              <span className="login-brand-sub">Sales OS</span>
-            </div>
-          </div>
+      <div className="login-frame">
+        <section className="login-workspace" aria-label="ACS Sales OS sign in">
+          <aside
+            className="login-brand-panel"
+            aria-label="ACS Sales OS overview"
+          >
+            <div className="login-dot-grid" aria-hidden="true" />
 
-          <div className="login-brand-statement">
-            <p className="login-eyebrow">Account manager workspace</p>
-            <h1>Return to your sales operating view.</h1>
-            <p>
-              Track pipeline movement, product coverage, approvals, and service
-              commitments from the same focused dashboard.
-            </p>
-          </div>
-
-          <div className="login-snapshot">
-            <div className="login-snapshot-header">
-              <span>Today</span>
-              <span className="login-status-pill">Live queue</span>
+            <div className="login-brand">
+              <span className="login-brand-mark" aria-hidden="true">
+                <Boxes size={24} strokeWidth={2.3} />
+              </span>
+              <div className="login-brand-copy">
+                <span className="login-brand-name">ACS</span>
+                <span className="login-brand-sub">Sales OS</span>
+              </div>
             </div>
-            <div className="login-snapshot-grid">
-              <div>
+
+            <div className="login-brand-statement">
+              <h1>
+                <span>One view.</span>
+                <span>Every deal.</span>
+                <span className="login-accent-line">Better outcomes.</span>
+              </h1>
+              <span className="login-headline-rule" aria-hidden="true" />
+              <p>
+                Track pipeline movement, product coverage, approvals, and
+                service commitments from the same focused dashboard.
+              </p>
+            </div>
+
+            <div className="login-kpi-card" aria-label="Workspace snapshot">
+              <div className="login-kpi-item login-kpi-blue">
+                <span className="login-kpi-icon" aria-hidden="true">
+                  <FileText size={24} strokeWidth={2.1} />
+                </span>
                 <strong>42</strong>
                 <span>Open deals</span>
+                <button type="button">
+                  View pipeline <ArrowRight size={14} strokeWidth={2.1} />
+                </button>
               </div>
-              <div>
+
+              <div className="login-kpi-item login-kpi-green">
+                <span className="login-kpi-icon" aria-hidden="true">
+                  <CheckCircle2 size={24} strokeWidth={2.1} />
+                </span>
                 <strong>7</strong>
                 <span>Approvals</span>
+                <button type="button">
+                  View approvals <ArrowRight size={14} strokeWidth={2.1} />
+                </button>
               </div>
-              <div>
+
+              <div className="login-kpi-item login-kpi-violet">
+                <span className="login-kpi-icon" aria-hidden="true">
+                  <RefreshCw size={24} strokeWidth={2.1} />
+                </span>
                 <strong>18</strong>
                 <span>Renewals</span>
+                <button type="button">
+                  View renewals <ArrowRight size={14} strokeWidth={2.1} />
+                </button>
               </div>
             </div>
-          </div>
-        </aside>
+          </aside>
 
-        <section className="login-form-panel card">
-          <div className="login-form-header">
-            <span className="login-form-icon">
-              <ShieldCheck size={18} strokeWidth={2} />
-            </span>
-            <div>
-              <h2>Sign in</h2>
-              <p>Use your ACS workspace credentials.</p>
-            </div>
-          </div>
+          <section className="login-form-panel" aria-label="Sign in form">
+            <div className="login-form-inner">
+              <div className="login-form-header">
+                <span className="login-form-icon" aria-hidden="true">
+                  <ShieldCheck size={28} strokeWidth={2.1} />
+                </span>
+                <div>
+                  <h2>Welcome back</h2>
+                  <p>Sign in to your ACS workspace</p>
+                </div>
+              </div>
 
-          <form className="login-form" onSubmit={onSubmit} noValidate>
-            <div className="login-field">
-              <label htmlFor="login-identity">Email</label>
-              <input
-                {...identityField}
-                id="login-identity"
-                type="text"
-                autoComplete="email"
-                placeholder="ravi.teja@acs.example"
-                aria-invalid={errors.identity ? 'true' : 'false'}
-              />
-              {errors.identity && <em>{errors.identity.message}</em>}
-            </div>
+              <form className="login-form" onSubmit={onSubmit} noValidate>
+                <div className="login-field">
+                  <label htmlFor="login-identity">Username or email</label>
+                  <span className="login-field-control">
+                    <Mail size={22} strokeWidth={2} aria-hidden="true" />
+                    <input
+                      {...identityField}
+                      id="login-identity"
+                      type="text"
+                      autoComplete="username"
+                      placeholder="ravi.teja@acs.example"
+                      aria-invalid={errors.identity ? 'true' : 'false'}
+                      aria-describedby={
+                        errors.identity ? 'login-identity-error' : undefined
+                      }
+                    />
+                  </span>
+                  {errors.identity && (
+                    <em id="login-identity-error">{errors.identity.message}</em>
+                  )}
+                </div>
 
-            <div className="login-field">
-              <label htmlFor="login-password">Password</label>
-              <span className="login-password-control">
-                <input
-                  {...passwordField}
-                  id="login-password"
-                  type={showPassword ? 'text' : 'password'}
-                  autoComplete="current-password"
-                  placeholder="Enter password"
-                  aria-invalid={errors.password ? 'true' : 'false'}
-                />
+                <div className="login-field">
+                  <label htmlFor="login-password">Password</label>
+                  <span className="login-field-control login-password-control">
+                    <Lock size={22} strokeWidth={2} aria-hidden="true" />
+                    <input
+                      {...passwordField}
+                      id="login-password"
+                      type={showPassword ? 'text' : 'password'}
+                      autoComplete="current-password"
+                      placeholder="Enter your password"
+                      aria-invalid={errors.password ? 'true' : 'false'}
+                      aria-describedby={
+                        errors.password ? 'login-password-error' : undefined
+                      }
+                    />
+                    <button
+                      type="button"
+                      className="login-password-toggle"
+                      onClick={() => setShowPassword((current) => !current)}
+                      aria-label={
+                        showPassword ? 'Hide password' : 'Show password'
+                      }
+                    >
+                      {showPassword ? (
+                        <EyeOff size={22} strokeWidth={2} />
+                      ) : (
+                        <Eye size={22} strokeWidth={2} />
+                      )}
+                    </button>
+                  </span>
+                  {errors.password && (
+                    <em id="login-password-error">{errors.password.message}</em>
+                  )}
+                </div>
+
+                <div className="login-form-row">
+                  <label className="login-remember" htmlFor="login-remember">
+                    <input
+                      id="login-remember"
+                      type="checkbox"
+                      {...register('rememberMe')}
+                    />
+                    <span>Remember me</span>
+                  </label>
+                  <button
+                    type="button"
+                    className="login-link-button"
+                    onClick={() => {
+                      setForgotMessage(passwordResetMessage)
+                      setLoginError(null)
+                    }}
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+
+                {loginError && (
+                  <div className="login-error" role="alert">
+                    {loginError}
+                  </div>
+                )}
+
                 <button
-                  type="button"
-                  className="login-password-toggle"
-                  onClick={() => setShowPassword((current) => !current)}
-                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                  type="submit"
+                  className="btn btn-primary login-submit"
+                  disabled={isSubmitting || loginMutation.isPending}
                 >
-                  {showPassword ? (
-                    <EyeOff size={16} strokeWidth={2} />
+                  {isSubmitting || loginMutation.isPending ? (
+                    <>
+                      <LoaderCircle
+                        className="login-submit-spinner"
+                        size={20}
+                        strokeWidth={2.2}
+                        aria-hidden="true"
+                      />
+                      Signing in
+                    </>
                   ) : (
-                    <Eye size={16} strokeWidth={2} />
+                    <>
+                      <LogIn size={20} strokeWidth={2.2} />
+                      Sign in
+                    </>
                   )}
                 </button>
-              </span>
-              {errors.password && <em>{errors.password.message}</em>}
+
+                <div className="login-divider" aria-hidden="true">
+                  <span>or continue with</span>
+                </div>
+
+                <div className="login-social-grid">
+                  <button type="button" className="login-social-button">
+                    <span className="login-microsoft-mark" aria-hidden="true">
+                      <span />
+                      <span />
+                      <span />
+                      <span />
+                    </span>
+                    Sign in with Microsoft
+                  </button>
+                  <button type="button" className="login-social-button">
+                    <span className="login-google-mark" aria-hidden="true">
+                      G
+                    </span>
+                    Sign in with Google
+                  </button>
+                </div>
+
+                {forgotMessage && (
+                  <p
+                    className="login-reset-note login-reset-note-active"
+                    role="status"
+                    aria-live="polite"
+                  >
+                    {forgotMessage}
+                  </p>
+                )}
+              </form>
             </div>
-
-            <div className="login-form-row">
-              <label className="login-remember">
-                <input type="checkbox" {...register('rememberMe')} />
-                <span>Remember me</span>
-              </label>
-              <button
-                type="button"
-                className="login-link-button"
-                onClick={() => {
-                  setForgotMessage(
-                    'Password reset is not connected yet. Contact your ACS admin for access help.',
-                  )
-                  setLoginError(null)
-                }}
-              >
-                Forgot password?
-              </button>
-            </div>
-
-            {forgotMessage && (
-              <div className="login-info" role="status">
-                {forgotMessage}
-              </div>
-            )}
-
-            {loginError && (
-              <div className="login-error" role="alert">
-                {loginError}
-              </div>
-            )}
-
-            <button
-              type="submit"
-              className="btn btn-primary login-submit"
-              disabled={isSubmitting || loginMutation.isPending}
-            >
-              {isSubmitting || loginMutation.isPending ? (
-                <>
-                  <LoaderCircle
-                    className="login-submit-spinner"
-                    size={16}
-                    strokeWidth={2.2}
-                    aria-hidden="true"
-                  />
-                  Signing in
-                </>
-              ) : (
-                <>
-                  <LogIn size={16} strokeWidth={2.2} />
-                  Login
-                </>
-              )}
-            </button>
-          </form>
+          </section>
         </section>
-      </section>
+
+        <p className="login-footer">
+          (c) 2025 ACS Technologies. All rights reserved.
+        </p>
+      </div>
     </main>
   )
 }
