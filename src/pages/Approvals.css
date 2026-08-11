@@ -1,0 +1,32 @@
+.approvals-header {
+  margin-bottom: 18px;
+}
+
+.approvals-header h2 {
+  font-size: 18px;
+}
+
+.approvals-header p {
+  margin-top: 4px;
+  font-size: 12.5px;
+  color: var(--text-muted);
+}
+
+.approvals-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.approvals-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 20px;
+  color: var(--success);
+}
+
+.approvals-empty p {
+  color: var(--text-muted);
+  font-size: 13px;
+}

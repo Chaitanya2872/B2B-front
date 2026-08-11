@@ -1,0 +1,243 @@
+.drawer-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(10, 10, 14, 0.38);
+  backdrop-filter: blur(6px);
+}
+
+.drawer-panel {
+  width: min(720px, 100vw);
+  height: 100vh;
+  border-radius: 0;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  box-shadow: var(--shadow-lg);
+  overflow-y: auto;
+}
+
+.drawer-panel--wide {
+  width: min(980px, 100vw);
+}
+
+.drawer-header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--border);
+  background:
+    linear-gradient(135deg, rgba(14, 165, 233, 0.05), rgba(255, 255, 255, 0.9)),
+    var(--surface);
+}
+
+.drawer-header h3 {
+  font-size: 18px;
+}
+
+.drawer-header p {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.drawer-content {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 20px 22px 28px;
+}
+
+.drawer-section {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.drawer-section-header h4 {
+  font-size: 14px;
+}
+
+.drawer-section-header p {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.drawer-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.drawer-summary-card {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface-hover);
+}
+
+.drawer-summary-card span {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+}
+
+.drawer-summary-card strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 16px;
+}
+
+.history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.history-item,
+.stage-admin-card {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.history-item {
+  padding: 14px;
+}
+
+.history-item span,
+.history-empty {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.history-item p {
+  margin-top: 6px;
+  color: var(--text);
+  font-size: 12.5px;
+}
+
+.drawer-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.drawer-error {
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.stage-admin-card {
+  padding: 18px;
+}
+
+.stage-admin-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.stage-admin-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.stage-admin-title p {
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.field-inline {
+  display: flex;
+  gap: 10px;
+}
+
+.field-inline input[type='color'] {
+  width: 56px;
+  min-width: 56px;
+  padding: 4px;
+}
+
+.check-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.check-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.check-chip--secondary {
+  min-width: 168px;
+  justify-content: center;
+}
+
+.check-chip input {
+  margin: 0;
+}
+
+.transition-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.transition-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-hover);
+}
+
+@media (max-width: 900px) {
+  .drawer-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .transition-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+}
+
+@media (max-width: 640px) {
+  .drawer-panel,
+  .drawer-panel--wide {
+    width: 100vw;
+  }
+
+  .drawer-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stage-admin-header {
+    flex-direction: column;
+  }
+}
