@@ -124,7 +124,6 @@
 .login-brand-mark,
 .login-form-icon,
 .login-kpi-icon,
-.login-social-button,
 .login-submit {
   display: inline-flex;
   align-items: center;
@@ -281,46 +280,6 @@
   line-height: 1.2;
 }
 
-.login-kpi-item button {
-  display: inline-flex;
-  min-height: 24px;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  margin-top: 7px;
-  border: 0;
-  padding: 2px 0;
-  background: transparent;
-  font-size: 13px;
-  font-weight: 600;
-  line-height: 1.15;
-}
-
-.login-kpi-item button svg {
-  width: 13px;
-  height: 13px;
-}
-
-.login-kpi-blue button {
-  color: var(--login-blue);
-}
-
-.login-kpi-green button {
-  color: var(--login-green);
-}
-
-.login-kpi-violet button {
-  color: var(--login-violet);
-}
-
-.login-kpi-item button:hover,
-.login-kpi-item button:focus-visible {
-  text-decoration: underline;
-  text-underline-offset: 4px;
-}
-
-.login-kpi-item button:focus-visible,
-.login-social-button:focus-visible,
 .login-submit:focus-visible {
   outline: 3px solid rgba(54, 148, 255, 0.35);
   outline-offset: 3px;
@@ -597,91 +556,6 @@
   animation: login-spin 0.8s linear infinite;
 }
 
-.login-divider {
-  display: grid;
-  grid-template-columns: minmax(48px, 1fr) auto minmax(48px, 1fr);
-  align-items: center;
-  gap: 20px;
-  color: var(--login-muted);
-  font-size: 14px;
-  line-height: 1;
-}
-
-.login-divider::before,
-.login-divider::after {
-  content: '';
-  height: 1px;
-  background: #d7e2ef;
-}
-
-.login-social-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 16px;
-}
-
-.login-social-button {
-  min-height: 52px;
-  gap: 10px;
-  border: 1px solid #d8e2ee;
-  border-radius: 8px;
-  background: #fff;
-  color: #142b52;
-  font-size: 15px;
-  font-weight: 600;
-  line-height: 1.2;
-  transition:
-    border-color 0.16s ease,
-    box-shadow 0.16s ease,
-    transform 0.16s ease;
-}
-
-.login-social-button:hover {
-  border-color: var(--login-line-strong);
-  box-shadow: 0 14px 30px -26px rgba(17, 39, 78, 0.48);
-  transform: translateY(-1px);
-}
-
-.login-microsoft-mark {
-  display: grid;
-  width: 20px;
-  height: 20px;
-  flex: 0 0 auto;
-  grid-template-columns: repeat(2, 1fr);
-  grid-template-rows: repeat(2, 1fr);
-  gap: 2px;
-}
-
-.login-microsoft-mark span:nth-child(1) {
-  background: #f25022;
-}
-
-.login-microsoft-mark span:nth-child(2) {
-  background: #7fba00;
-}
-
-.login-microsoft-mark span:nth-child(3) {
-  background: #00a4ef;
-}
-
-.login-microsoft-mark span:nth-child(4) {
-  background: #ffb900;
-}
-
-.login-google-mark {
-  display: inline-flex;
-  width: 22px;
-  height: 22px;
-  flex: 0 0 auto;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  color: #4285f4;
-  font-size: 20px;
-  font-weight: 800;
-  line-height: 1;
-}
-
 .login-reset-note {
   color: var(--login-muted);
   font-size: 14px;
@@ -798,16 +672,6 @@
     font-size: 12px;
   }
 
-  .login-kpi-item button {
-    margin-top: 5px;
-    font-size: 12px;
-  }
-
-  .login-kpi-item button svg {
-    width: 12px;
-    height: 12px;
-  }
-
   .login-form-panel {
     min-height: 540px;
     padding: 42px 34px;
@@ -849,8 +713,7 @@
     min-height: 48px;
   }
 
-  .login-submit,
-  .login-social-button {
+  .login-submit {
     min-height: 50px;
   }
 }
@@ -940,8 +803,6 @@
   .login-field > label,
   .login-remember,
   .login-link-button,
-  .login-divider,
-  .login-social-button,
   .login-reset-note,
   .login-footer {
     font-size: 14px;
@@ -965,19 +826,6 @@
     align-items: flex-start;
     flex-direction: column;
     gap: 12px;
-  }
-
-  .login-social-grid {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
-
-  .login-social-button {
-    min-height: 52px;
-  }
-
-  .login-divider {
-    gap: 14px;
   }
 
   .login-footer {

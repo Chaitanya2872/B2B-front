@@ -10,6 +10,7 @@ import { QueryState } from '../components/ui/QueryState'
 import { MainLayout } from '../layouts/MainLayout'
 import { Overview } from '../pages/Overview'
 import { Home } from '../pages/Home'
+import { Leads } from '../pages/Leads'
 import { Contacts } from '../pages/Contacts'
 import { Accounts } from '../pages/Accounts'
 import { Products } from '../pages/Products'
@@ -184,6 +185,14 @@ export function AppRouter() {
               element={
                 <RequireB2BPermission>
                   <Overview />
+                </RequireB2BPermission>
+              }
+            />
+            <Route
+              path="/leads"
+              element={
+                <RequireB2BPermission>
+                  <Leads />
                 </RequireB2BPermission>
               }
             />

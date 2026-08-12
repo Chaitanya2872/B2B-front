@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
-  ArrowRight,
   Boxes,
   CheckCircle2,
   Eye,
@@ -128,9 +127,6 @@ export function Login() {
                 </span>
                 <strong>42</strong>
                 <span>Open deals</span>
-                <button type="button">
-                  View pipeline <ArrowRight size={14} strokeWidth={2.1} />
-                </button>
               </div>
 
               <div className="login-kpi-item login-kpi-green">
@@ -139,9 +135,6 @@ export function Login() {
                 </span>
                 <strong>7</strong>
                 <span>Approvals</span>
-                <button type="button">
-                  View approvals <ArrowRight size={14} strokeWidth={2.1} />
-                </button>
               </div>
 
               <div className="login-kpi-item login-kpi-violet">
@@ -150,9 +143,6 @@ export function Login() {
                 </span>
                 <strong>18</strong>
                 <span>Renewals</span>
-                <button type="button">
-                  View renewals <ArrowRight size={14} strokeWidth={2.1} />
-                </button>
               </div>
             </div>
           </aside>
@@ -275,28 +265,6 @@ export function Login() {
                     </>
                   )}
                 </button>
-
-                <div className="login-divider" aria-hidden="true">
-                  <span>or continue with</span>
-                </div>
-
-                <div className="login-social-grid">
-                  <button type="button" className="login-social-button">
-                    <span className="login-microsoft-mark" aria-hidden="true">
-                      <span />
-                      <span />
-                      <span />
-                      <span />
-                    </span>
-                    Sign in with Microsoft
-                  </button>
-                  <button type="button" className="login-social-button">
-                    <span className="login-google-mark" aria-hidden="true">
-                      G
-                    </span>
-                    Sign in with Google
-                  </button>
-                </div>
 
                 {forgotMessage && (
                   <p

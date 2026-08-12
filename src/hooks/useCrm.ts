@@ -1,11 +1,14 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import {
+  convertLead,
   createAccount,
   createContact,
   createDeal,
+  createLead,
   createProduct,
   deleteAccount,
   deleteContact,
+  deleteLead,
   deleteProduct,
   fetchAccounts,
   fetchActivityItems,
@@ -14,6 +17,7 @@ import {
   fetchDashboardSummary,
   fetchDealStageHistory,
   fetchDeals,
+  fetchLeads,
   fetchPipelineStages,
   fetchProducts,
   fetchProductSummary,
@@ -26,6 +30,7 @@ import {
   updateAccount,
   updateContact,
   updateDeal,
+  updateLead,
   updatePipelineStage,
   updateApprovalStatus,
   updateProduct,
@@ -35,8 +40,10 @@ import type {
   ApprovalRole,
   ApprovalStatus,
   ContactInput,
+  ConvertLeadInput,
   Deal,
   DealUpdateInput,
+  LeadInput,
   PipelineStageUpdateRequest,
   StageMoveRequest,
 } from '../types'
@@ -62,6 +69,9 @@ export const crmKeys = {
   contactLists: () => [...crmKeys.all, 'contacts'] as const,
   contacts: (search = '', accountName = '') =>
     [...crmKeys.all, 'contacts', search, accountName] as const,
+  leadLists: () => [...crmKeys.all, 'leads'] as const,
+  leads: (search = '', status = '') =>
+    [...crmKeys.all, 'leads', search, status] as const,
 }
 
 function invalidateAccountReadModels(
@@ -74,6 +84,12 @@ function invalidateContactReadModels(
   queryClient: ReturnType<typeof useQueryClient>,
 ) {
   void queryClient.invalidateQueries({ queryKey: crmKeys.contactLists() })
+}
+
+function invalidateLeadReadModels(
+  queryClient: ReturnType<typeof useQueryClient>,
+) {
+  void queryClient.invalidateQueries({ queryKey: crmKeys.leadLists() })
 }
 
 function invalidateDealReadModels(
@@ -433,6 +449,67 @@ export function useDeleteContact() {
     mutationFn: (contactId: string) => deleteContact(contactId),
     onSuccess: () => {
       invalidateContactReadModels(queryClient)
+    },
+  })
+}
+
+export function useLeads(search?: string, status?: string) {
+  return useQuery({
+    queryKey: crmKeys.leads(search, status),
+    queryFn: () => fetchLeads({ search, status }),
+  })
+}
+
+export function useCreateLead() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (input: LeadInput) => createLead(input),
+    onSuccess: () => {
+      invalidateLeadReadModels(queryClient)
+    },
+  })
+}
+
+export function useUpdateLead() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ leadId, input }: { leadId: string; input: LeadInput }) =>
+      updateLead(leadId, input),
+    onSuccess: () => {
+      invalidateLeadReadModels(queryClient)
+    },
+  })
+}
+
+export function useDeleteLead() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (leadId: string) => deleteLead(leadId),
+    onSuccess: () => {
+      invalidateLeadReadModels(queryClient)
+    },
+  })
+}
+
+export function useConvertLead() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({
+      leadId,
+      input,
+    }: {
+      leadId: string
+      input: ConvertLeadInput
+    }) => convertLead(leadId, input),
+    onSuccess: () => {
+      invalidateLeadReadModels(queryClient)
+      invalidateAccountReadModels(queryClient)
+      invalidateContactReadModels(queryClient)
+      invalidateDealReadModels(queryClient)
     },
   })
 }

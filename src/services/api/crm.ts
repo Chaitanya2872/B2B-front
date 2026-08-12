@@ -8,11 +8,15 @@ import type {
   ApprovalStep,
   Contact,
   ContactInput,
+  ConvertLeadInput,
+  ConvertLeadResult,
   DashboardSummary,
   Deal,
   DealUpdateInput,
   DealStageHistoryItem,
   ImportDealsResponse,
+  Lead,
+  LeadInput,
   PipelineStage,
   PipelineStageUpdateRequest,
   Priority,
@@ -278,4 +282,31 @@ export async function updateContact(contactId: string, input: ContactInput) {
 
 export async function deleteContact(contactId: string) {
   await apiClient.delete(`/contacts/${contactId}`)
+}
+
+export async function fetchLeads(params?: { search?: string; status?: string }) {
+  const response = await apiClient.get<Lead[]>('/leads', { params })
+  return response.data
+}
+
+export async function createLead(input: LeadInput) {
+  const response = await apiClient.post<Lead>('/leads', input)
+  return response.data
+}
+
+export async function updateLead(leadId: string, input: LeadInput) {
+  const response = await apiClient.put<Lead>(`/leads/${leadId}`, input)
+  return response.data
+}
+
+export async function deleteLead(leadId: string) {
+  await apiClient.delete(`/leads/${leadId}`)
+}
+
+export async function convertLead(leadId: string, input: ConvertLeadInput) {
+  const response = await apiClient.post<ConvertLeadResult>(
+    `/leads/${leadId}/convert`,
+    input,
+  )
+  return response.data
 }

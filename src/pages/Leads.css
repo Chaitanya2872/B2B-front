@@ -1,0 +1,153 @@
+.leads-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.leads-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.leads-header h2 {
+  font-size: 18px;
+}
+
+.leads-header p {
+  margin-top: 4px;
+  color: var(--text-muted);
+  font-size: 12.5px;
+}
+
+.leads-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.leads-search {
+  min-width: 300px;
+}
+
+.stats-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.stats-grid > * {
+  flex: 1 1 200px;
+}
+
+.table-th {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.leads-table-wrap {
+  overflow: auto;
+}
+
+.leads-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.leads-table th,
+.leads-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  font-size: 13px;
+}
+
+.leads-table th {
+  color: var(--text-faint);
+  font-size: 11.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.leads-row {
+  cursor: pointer;
+}
+
+.leads-row:hover {
+  background: var(--surface-hover);
+}
+
+.leads-company {
+  font-weight: 600;
+}
+
+.leads-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.leads-error {
+  margin: 0;
+  color: var(--danger);
+  font-size: 12px;
+}
+
+.leads-empty {
+  text-align: center;
+  color: var(--text-faint);
+  font-size: 12.5px;
+  padding: 28px 16px;
+}
+
+.leads-actions-col {
+  width: 1%;
+  white-space: nowrap;
+}
+
+.leads-row-action-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+}
+
+.leads-row-action-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+
+.leads-row-action-btn--danger:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+.leads-row-action-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 980px) {
+  .stats-grid > * {
+    flex-basis: calc(50% - 7px);
+  }
+}
+
+@media (max-width: 640px) {
+  .leads-search {
+    min-width: 0;
+  }
+}

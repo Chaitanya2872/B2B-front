@@ -81,8 +81,9 @@ export function ImportDealsModal({ onClose, stages }: ImportDealsModalProps) {
               <strong>Use the prepared Excel format</strong>
               <small>
                 Required: Prospect and Solution. Contact Person, Current Stage,
-                Value (₹ Lakhs), Est. Closure and Probability are mapped
-                automatically. Reference and Remarks are retained as extra fields.
+                Value (₹ Lakhs), Est. Closure, Probability and Reference (used
+                as account manager) are mapped automatically. Remarks is
+                retained as an extra field.
               </small>
             </div>
             <button

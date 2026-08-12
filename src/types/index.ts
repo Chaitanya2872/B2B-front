@@ -195,3 +195,56 @@ export interface ContactInput {
   title: string
   accountName: string
 }
+
+export type LeadStatus =
+  'new_lead' | 'contacted' | 'qualified' | 'unqualified' | 'converted' | 'lost'
+
+export interface Lead {
+  id: string
+  company: string
+  contactName: string
+  email: string
+  phone: string
+  source: string
+  owner: string
+  status: LeadStatus
+  score: number
+  notes: string
+  createdAt: string
+  updatedAt: string
+  convertedAccountId: string | null
+  convertedContactId: string | null
+  convertedDealId: string | null
+}
+
+export interface LeadInput {
+  company: string
+  contactName: string
+  email: string
+  phone: string
+  source: string
+  owner: string
+  status?: LeadStatus
+  score: number
+  notes: string
+}
+
+export interface ConvertLeadInput {
+  accountName: string
+  contactName?: string
+  contactEmail?: string
+  contactPhone?: string
+  createOpportunity: boolean
+  product?: string
+  value?: number
+  stageId?: string
+}
+
+export interface ConvertLeadResult {
+  leadId: string
+  accountId: string
+  accountName: string
+  contactId: string | null
+  contactName: string | null
+  dealId: string | null
+}

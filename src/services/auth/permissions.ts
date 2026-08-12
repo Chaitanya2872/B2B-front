@@ -10,6 +10,7 @@ export const B2B_PERMISSIONS = {
   APPROVALS_REVIEW: 'feature.b2b.approvals.review',
   ACCOUNTS_MANAGE: 'feature.b2b.accounts.manage',
   CONTACTS_MANAGE: 'feature.b2b.contacts.manage',
+  LEADS_MANAGE: 'feature.b2b.leads.manage',
 } as const
 
 export const B2B_APPROVAL_ROLES = [
@@ -64,5 +65,6 @@ export function getPipelineActionPermissions(
     canReviewApprovals: hasPermission(user, B2B_PERMISSIONS.APPROVALS_REVIEW),
     canManageAccounts: hasPermission(user, B2B_PERMISSIONS.ACCOUNTS_MANAGE),
     canManageContacts: hasPermission(user, B2B_PERMISSIONS.CONTACTS_MANAGE),
+    canManageLeads: hasPermission(user, B2B_PERMISSIONS.LEADS_MANAGE),
   }
 }
