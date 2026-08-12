@@ -5,6 +5,7 @@ import {
   PackageSearch,
   CheckSquare,
   ShieldCheck,
+  Target,
   Users,
   type LucideIcon,
 } from 'lucide-react'
@@ -19,6 +20,7 @@ export interface NavItem {
 
 export const NAV_ITEMS: NavItem[] = [
   { to: '/', label: 'Overview', icon: LayoutDashboard },
+  { to: '/leads', label: 'Leads', icon: Target },
   { to: '/pipeline', label: 'Deals', icon: LayoutGrid },
   { to: '/contacts', label: 'Contacts', icon: Users },
   { to: '/accounts', label: 'Accounts', icon: Building2 },
