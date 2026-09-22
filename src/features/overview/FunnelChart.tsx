@@ -1,16 +1,19 @@
+import { useNavigate } from 'react-router-dom'
+import { ArrowRight, Flame } from 'lucide-react'
 import { useDashboardSummary, usePipelineStages } from '../../hooks/useCrm'
 import { QueryState } from '../../components/ui/QueryState'
 import { getQueryStateCopy } from '../../utils/queryState'
 import './overview.css'
 
-const ROW_HEIGHT = 32
-const BAR_HEIGHT = 18
+const ROW_HEIGHT = 34
+const BAR_HEIGHT = 20
 const CHART_LEFT = 96
 const CHART_RIGHT = 34
 const VALUE_COLUMN_GAP = 8
 const WIDTH = 460
-const RADIUS = 4
-const LAST_VISIBLE_STAGE_ID = 'order_placed'
+const RADIUS = 5
+const LAST_VISIBLE_STAGE_ID = 'order'
+const HOT_STAGE_ID = 'quotation'
 
 function roundedRightBarPath(
   x: number,
@@ -25,6 +28,7 @@ function roundedRightBarPath(
 }
 
 export function FunnelChart() {
+  const navigate = useNavigate()
   const {
     data: summary,
     isLoading: isSummaryLoading,
@@ -46,7 +50,7 @@ export function FunnelChart() {
     return (
       <div className="chart-card card">
         <div className="chart-card-header">
-          <h3>Stage funnel</h3>
+          <h3>Stage Funnel</h3>
           <p>Loading open deals by stage</p>
         </div>
       </div>
@@ -67,7 +71,7 @@ export function FunnelChart() {
     return (
       <div className="chart-card card">
         <div className="chart-card-header">
-          <h3>Stage funnel</h3>
+          <h3>Stage Funnel</h3>
           <p>No pipeline stages are configured yet</p>
         </div>
       </div>
@@ -83,15 +87,28 @@ export function FunnelChart() {
       : allStages.slice(0, lastVisibleIndex + 1)
   const counts = stages.map((stage) => summary?.funnelCounts[stage.id] ?? 0)
   const max = Math.max(1, ...counts)
+  const totalOpenDeals = counts.reduce((sum, count) => sum + count, 0)
   const valueColumnWidth = String(max).length * 7 + VALUE_COLUMN_GAP
   const trackWidth = WIDTH - CHART_LEFT - CHART_RIGHT - valueColumnWidth
   const height = stages.length * ROW_HEIGHT
 
+  const hotIndex = stages.findIndex((stage) => stage.id === HOT_STAGE_ID)
+  const hotCount = hotIndex >= 0 ? counts[hotIndex] : 0
+  const closingSoon = stages
+    .slice(Math.max(0, hotIndex))
+    .reduce(
+      (sum, _stage, offset) => sum + counts[Math.max(0, hotIndex) + offset],
+      0,
+    )
+
   return (
     <div className="chart-card card">
-      <div className="chart-card-header">
-        <h3>Stage funnel</h3>
-        <p>Open deals at each stage right now</p>
+      <div className="chart-card-header chart-card-header--row">
+        <div>
+          <h3>Stage Funnel</h3>
+          <p>Open deals by conversion milestone</p>
+        </div>
+        <span className="chart-count-pill">{totalOpenDeals} Active Deals</span>
       </div>
 
       <svg
@@ -104,14 +121,28 @@ export function FunnelChart() {
           const count = counts[index]
           const barWidth = (count / max) * trackWidth
           const y = index * ROW_HEIGHT + (ROW_HEIGHT - BAR_HEIGHT) / 2
+          const isHot = stage.id === HOT_STAGE_ID && count > 0
 
           return (
-            <g key={stage.id}>
+            <g
+              key={stage.id}
+              className={count === 0 ? 'funnel-row funnel-row--muted' : 'funnel-row'}
+            >
+              {isHot && (
+                <rect
+                  x={2}
+                  y={y - 6}
+                  width={WIDTH - 4}
+                  height={BAR_HEIGHT + 12}
+                  rx={10}
+                  className="funnel-hot-highlight"
+                />
+              )}
               <text
                 x={CHART_LEFT - 12}
                 y={y + BAR_HEIGHT / 2 + 4}
                 textAnchor="end"
-                className="funnel-label"
+                className={isHot ? 'funnel-label funnel-label--hot' : 'funnel-label'}
               >
                 {stage.shortLabel}
               </text>
@@ -132,13 +163,14 @@ export function FunnelChart() {
                     BAR_HEIGHT,
                     RADIUS,
                   )}
-                  fill={`var(--funnel-${index + 1})`}
+                  fill={isHot ? 'var(--accent)' : `var(--funnel-${index + 1})`}
+                  className={isHot ? 'funnel-bar-hot' : undefined}
                 />
               )}
               <text
                 x={CHART_LEFT + trackWidth + VALUE_COLUMN_GAP}
                 y={y + BAR_HEIGHT / 2 + 4}
-                className="funnel-value"
+                className={isHot ? 'funnel-value funnel-value--hot' : 'funnel-value'}
               >
                 {count}
               </text>
@@ -146,6 +178,27 @@ export function FunnelChart() {
           )
         })}
       </svg>
+
+      {hotCount > 0 && (
+        <div className="funnel-hot-note">
+          <Flame size={13} strokeWidth={2.2} />
+          <span>{hotCount} quotation{hotCount === 1 ? '' : 's'} ready to close</span>
+        </div>
+      )}
+
+      <div className="chart-card-footer">
+        <span className="chart-card-footer-note">
+          {closingSoon} deal{closingSoon === 1 ? '' : 's'} poised for immediate closing
+        </span>
+        <button
+          type="button"
+          className="chart-card-footer-link"
+          onClick={() => navigate('/pipeline')}
+        >
+          Optimize Conversion
+          <ArrowRight size={14} strokeWidth={2.2} />
+        </button>
+      </div>
     </div>
   )
 }

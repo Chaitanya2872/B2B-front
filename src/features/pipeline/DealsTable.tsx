@@ -31,6 +31,17 @@ export function DealsTable({ deals, onDealSelect }: DealsTableProps) {
   return (
     <div className="deals-table-wrap card">
       <table className="deals-table">
+        <colgroup>
+          <col className="col-company" />
+          <col className="col-contact" />
+          <col className="col-product" />
+          <col className="col-owner" />
+          <col className="col-stage" />
+          <col className="col-value" />
+          <col className="col-priority" />
+          <col className="col-risk" />
+          <col className="col-closure" />
+        </colgroup>
         <thead>
           <tr>
             <th>Company</th>
@@ -93,7 +104,7 @@ export function DealsTable({ deals, onDealSelect }: DealsTableProps) {
                   {formatStageLabel(deal.riskStatus)}
                 </span>
               </td>
-              <td>
+              <td className="deals-table-nowrap">
                 {deal.expectedClosureDate
                   ? formatDate(deal.expectedClosureDate)
                   : '—'}

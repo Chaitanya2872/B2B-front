@@ -2,7 +2,14 @@ import { useForm, useWatch } from 'react-hook-form'
 import { useEffect, useMemo, useState } from 'react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
-import { Building2, CalendarClock, Layers, X } from 'lucide-react'
+import {
+  ArrowRight,
+  Building2,
+  CalendarClock,
+  Layers,
+  Sparkles,
+  X,
+} from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { useCreateDeal, useProducts } from '../../hooks/useCrm'
 import { getApiErrorMessage } from '../../services/api/client'
@@ -30,6 +37,7 @@ type DealFormField = keyof DealFormOutput
 interface FormSection {
   id: string
   label: string
+  description: string
   icon: LucideIcon
   fields: DealFormField[]
 }
@@ -38,18 +46,21 @@ const SECTIONS: FormSection[] = [
   {
     id: 'company',
     label: 'Company & contact',
+    description: 'Who the deal is with',
     icon: Building2,
     fields: ['company', 'contact', 'accountManager'],
   },
   {
     id: 'deal',
     label: 'Deal details',
+    description: 'Product, value & stage',
     icon: Layers,
     fields: ['product', 'stage', 'value', 'priority', 'oemVendor'],
   },
   {
     id: 'schedule',
     label: 'Schedule',
+    description: 'Closure & next steps',
     icon: CalendarClock,
     fields: ['expectedClosureDate', 'nextActivityDueDate', 'nextActivity'],
   },
@@ -70,11 +81,16 @@ export function AddDealModal({ onClose, stages }: AddDealModalProps) {
     register,
     handleSubmit,
     setValue,
+    trigger,
     formState: { errors, isSubmitting },
   } = useForm<DealFormInput, unknown, DealFormOutput>({
     resolver: zodResolver(dealFormSchema),
     defaultValues: { priority: 'medium', stage: defaultStage },
   })
+  const activeSectionIndex = SECTIONS.findIndex(
+    (section) => section.id === activeSection,
+  )
+  const isLastSection = activeSectionIndex === SECTIONS.length - 1
   const selectedStageId = useWatch({ control, name: 'stage' })
   const selectedProductName = useWatch({ control, name: 'product' })
   const selectedStage = stages.find((stage) => stage.id === selectedStageId)
@@ -125,17 +141,31 @@ export function AddDealModal({ onClose, stages }: AddDealModalProps) {
     },
   )
 
+  async function goToNextSection() {
+    const currentSection = SECTIONS[activeSectionIndex]
+    const valid = await trigger(currentSection.fields)
+    if (valid && activeSectionIndex < SECTIONS.length - 1) {
+      setActiveSection(SECTIONS[activeSectionIndex + 1].id)
+    }
+  }
+
   return (
-    <div className="modal-overlay" onClick={onClose}>
+    <div className="deal-sheet-overlay" onClick={onClose}>
       <div
-        className="modal-panel modal-panel--wide card"
+        className="deal-sheet-panel card"
         role="dialog"
         aria-modal="true"
         aria-labelledby="add-deal-title"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className="modal-header">
-          <h3 id="add-deal-title">Add new pipeline deal</h3>
+        <div className="modal-header deal-modal-header">
+          <div className="deal-modal-header-icon">
+            <Sparkles size={18} strokeWidth={2.2} />
+          </div>
+          <div className="deal-modal-header-text">
+            <h3 id="add-deal-title">Add new pipeline deal</h3>
+            <p>Create a new opportunity and drop it into your pipeline</p>
+          </div>
           <button className="modal-close" onClick={onClose} aria-label="Close">
             <X size={16} strokeWidth={2} />
           </button>
@@ -143,22 +173,38 @@ export function AddDealModal({ onClose, stages }: AddDealModalProps) {
 
         <div className="deal-modal-body">
           <nav className="deal-modal-nav">
-            {SECTIONS.map((section) => {
+            {SECTIONS.map((section, index) => {
               const Icon = section.icon
+              const isActive = activeSection === section.id
+              const hasError = sectionsWithErrors.has(section.id)
               return (
                 <button
                   key={section.id}
                   type="button"
                   className={`deal-modal-nav-item${
-                    activeSection === section.id
-                      ? ' deal-modal-nav-item--active'
-                      : ''
+                    isActive ? ' deal-modal-nav-item--active' : ''
                   }`}
                   onClick={() => setActiveSection(section.id)}
                 >
-                  <Icon size={15} strokeWidth={2} />
-                  <span>{section.label}</span>
-                  {sectionsWithErrors.has(section.id) && (
+                  <span
+                    className={`deal-modal-nav-icon${
+                      hasError ? ' deal-modal-nav-icon--error' : ''
+                    }`}
+                  >
+                    <Icon size={15} strokeWidth={2.2} />
+                  </span>
+                  <span className="deal-modal-nav-text">
+                    <span className="deal-modal-nav-label">
+                      {section.label}
+                    </span>
+                    <span className="deal-modal-nav-desc">
+                      {section.description}
+                    </span>
+                  </span>
+                  {index < SECTIONS.length - 1 && (
+                    <span className="deal-modal-nav-line" aria-hidden="true" />
+                  )}
+                  {hasError && (
                     <span
                       className="deal-modal-nav-error"
                       aria-label="Has errors"
@@ -226,13 +272,19 @@ export function AddDealModal({ onClose, stages }: AddDealModalProps) {
 
               <label className="field">
                 <span>Pipeline stage</span>
-                <select {...register('stage')}>
-                  {stages.map((stage) => (
-                    <option key={stage.id} value={stage.id}>
-                      {stage.name}
-                    </option>
-                  ))}
-                </select>
+                <div className="stage-select">
+                  <span
+                    className="stage-dot"
+                    style={{ background: selectedStage?.color ?? 'var(--accent)' }}
+                  />
+                  <select {...register('stage')}>
+                    {stages.map((stage) => (
+                      <option key={stage.id} value={stage.id}>
+                        {stage.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
                 {errors.stage && <em>{errors.stage.message}</em>}
               </label>
 
@@ -300,13 +352,25 @@ export function AddDealModal({ onClose, stages }: AddDealModalProps) {
               <button type="button" className="btn btn-ghost" onClick={onClose}>
                 Cancel
               </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={isSubmitting || createDeal.isPending}
-              >
-                Add to {selectedStage?.name ?? 'selected'} stage
-              </button>
+              {isLastSection ? (
+                <button
+                  type="submit"
+                  className="btn btn-primary deal-modal-submit"
+                  disabled={isSubmitting || createDeal.isPending}
+                >
+                  Add to {selectedStage?.name ?? 'selected'} stage
+                  <ArrowRight size={15} strokeWidth={2.4} />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="btn btn-primary deal-modal-submit"
+                  onClick={goToNextSection}
+                >
+                  Next: {SECTIONS[activeSectionIndex + 1].label}
+                  <ArrowRight size={15} strokeWidth={2.4} />
+                </button>
+              )}
             </div>
             {createDeal.isError && (
               <div className="form-error">

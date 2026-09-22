@@ -1,4 +1,5 @@
-import { CheckCircle2 } from 'lucide-react'
+import { useState } from 'react'
+import { CheckCircle2, Search } from 'lucide-react'
 import { QueryState } from '../components/ui/QueryState'
 import { ApprovalQueueItem } from '../features/approvals/ApprovalQueueItem'
 import { useCurrentUser } from '../hooks/useAuth'
@@ -8,6 +9,7 @@ import { getQueryStateCopy } from '../utils/queryState'
 import './Approvals.css'
 
 export function Approvals() {
+  const [searchQuery, setSearchQuery] = useState('')
   const { data: currentUser } = useCurrentUser()
   const { canReviewApprovals } = getPipelineActionPermissions(currentUser)
   const { data: deals = [], isLoading, isError, error } = useApprovals()
@@ -16,11 +18,38 @@ export function Approvals() {
     detail: 'The CRM API could not be reached. Start the backend and refresh.',
   })
 
+  const query = searchQuery.trim().toLowerCase()
+  const filteredDeals = query
+    ? deals.filter((deal) =>
+        [deal.company, deal.product].some((field) =>
+          field.toLowerCase().includes(query),
+        ),
+      )
+    : deals
+
   return (
     <div className="approvals-page">
       <div className="approvals-header">
-        <h2>Approval queue</h2>
-        <p>RSM, Finance, and Business Head approvals, signed off in order.</p>
+        <div>
+          <div className="approvals-title-row">
+            <h2>Approval queue</h2>
+            {deals.length > 0 && (
+              <span className="approvals-pending-badge">
+                {deals.length} pending
+              </span>
+            )}
+          </div>
+          <p>RSM, Finance, and Business Head approvals, signed off in order.</p>
+        </div>
+        <div className="approvals-search-box">
+          <Search size={14} strokeWidth={2} />
+          <input
+            type="text"
+            placeholder="Search approvals..."
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+          />
+        </div>
       </div>
 
       {isLoading ? (
@@ -42,9 +71,14 @@ export function Approvals() {
             approval.
           </p>
         </div>
+      ) : filteredDeals.length === 0 ? (
+        <div className="approvals-empty card">
+          <Search size={20} strokeWidth={2} />
+          <p>No approvals match &ldquo;{searchQuery}&rdquo;.</p>
+        </div>
       ) : (
         <div className="approvals-list">
-          {deals.map((deal) => (
+          {filteredDeals.map((deal) => (
             <ApprovalQueueItem
               key={deal.id}
               deal={deal}

@@ -5,7 +5,6 @@ import {
   PackageSearch,
   CheckSquare,
   ShieldCheck,
-  Target,
   Users,
   type LucideIcon,
 } from 'lucide-react'
@@ -16,17 +15,32 @@ export interface NavItem {
   to: string
   label: string
   icon: LucideIcon
+  group: 'workspace' | 'management'
 }
 
 export const NAV_ITEMS: NavItem[] = [
-  { to: '/', label: 'Overview', icon: LayoutDashboard },
-  { to: '/leads', label: 'Leads', icon: Target },
-  { to: '/pipeline', label: 'Deals', icon: LayoutGrid },
-  { to: '/contacts', label: 'Contacts', icon: Users },
-  { to: '/accounts', label: 'Accounts', icon: Building2 },
-  { to: '/products', label: 'Products', icon: PackageSearch },
-  { to: '/approvals', label: 'Approvals', icon: CheckSquare },
-  { to: '/warranty', label: 'Warranty & AMC', icon: ShieldCheck },
+  { to: '/', label: 'Overview', icon: LayoutDashboard, group: 'workspace' },
+  { to: '/pipeline', label: 'Deals', icon: LayoutGrid, group: 'workspace' },
+  { to: '/contacts', label: 'Contacts', icon: Users, group: 'workspace' },
+  { to: '/accounts', label: 'Accounts', icon: Building2, group: 'workspace' },
+  {
+    to: '/products',
+    label: 'Products',
+    icon: PackageSearch,
+    group: 'workspace',
+  },
+  {
+    to: '/approvals',
+    label: 'Approvals',
+    icon: CheckSquare,
+    group: 'management',
+  },
+  {
+    to: '/warranty',
+    label: 'Warranty & AMC',
+    icon: ShieldCheck,
+    group: 'management',
+  },
 ]
 
 export const APPROVAL_FLOW: Record<

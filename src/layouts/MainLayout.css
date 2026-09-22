@@ -14,5 +14,12 @@
 .app-content {
   flex: 1;
   overflow-y: auto;
-  padding: 24px 28px 40px;
+  padding: 28px 32px;
+  background: var(--bg);
+}
+
+@media (max-width: 640px) {
+  .app-content {
+    padding: 18px 16px;
+  }
 }

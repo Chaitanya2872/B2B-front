@@ -49,7 +49,7 @@ export function Home() {
 
   return (
     <div className="home-page">
-      <div className="pipeline-toolbar">
+      <div className="pipeline-header">
         <div>
           <h2 className="pipeline-toolbar-title">Deals</h2>
           <p className="pipeline-toolbar-subtitle">
@@ -57,16 +57,29 @@ export function Home() {
             in-house inventory.
           </p>
         </div>
+        {canManageDeals && (
+          <button
+            type="button"
+            className="pipeline-add-btn"
+            onClick={() => setIsAddDealOpen(true)}
+          >
+            <Plus size={17} strokeWidth={2.5} />
+            Add Deal
+          </button>
+        )}
+      </div>
+
+      <div className="pipeline-toolbar">
+        <div className="search-box">
+          <Search size={15} strokeWidth={2} />
+          <input
+            type="text"
+            placeholder="Search company, product or account manager"
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+          />
+        </div>
         <div className="pipeline-toolbar-actions">
-          <div className="search-box">
-            <Search size={15} strokeWidth={2} />
-            <input
-              type="text"
-              placeholder="Search company, product or account manager"
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-            />
-          </div>
           <div className="deals-view-toggle" role="group" aria-label="Deals view">
             <button
               type="button"
@@ -89,15 +102,6 @@ export function Home() {
               Board
             </button>
           </div>
-          {canManageDeals && (
-            <button
-              className="btn btn-primary"
-              onClick={() => setIsAddDealOpen(true)}
-            >
-              <Plus size={15} strokeWidth={2.5} />
-              Add deal
-            </button>
-          )}
           {canManagePipeline && (
             <button
               className="btn btn-ghost"

@@ -12,13 +12,14 @@
 .modal-panel {
   width: 100%;
   max-width: 440px;
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-lg);
   max-height: calc(100vh - 40px);
   overflow-y: auto;
 }
 
 .modal-panel--wide {
-  max-width: 720px;
+  max-width: 760px;
 }
 
 .modal-header {
@@ -39,10 +40,14 @@
   justify-content: center;
   width: 28px;
   height: 28px;
+  flex-shrink: 0;
   border-radius: 999px;
   background: transparent;
   border: none;
   color: var(--text-faint);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 .modal-close:hover {
@@ -50,36 +55,124 @@
   color: var(--text);
 }
 
+/* ---------- Add Deal: right sheet ---------- */
+
+.deal-sheet-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 110;
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+  background: rgba(10, 10, 14, 0.38);
+  backdrop-filter: blur(6px);
+}
+
+.deal-sheet-panel {
+  display: flex;
+  flex-direction: column;
+  width: min(760px, 100vw);
+  height: 100vh;
+  border-radius: 0;
+  border-top: none;
+  border-right: none;
+  border-bottom: none;
+  box-shadow: var(--shadow-lg);
+  animation: deal-sheet-in 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes deal-sheet-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .deal-sheet-panel {
+    animation: none;
+  }
+}
+
+/* ---------- Add Deal: header ---------- */
+
+.deal-modal-header {
+  flex-shrink: 0;
+  gap: 12px;
+  padding: 18px 20px;
+  background: linear-gradient(
+    135deg,
+    var(--accent-bg) 0%,
+    rgba(255, 255, 255, 0) 60%
+  );
+}
+
+.deal-modal-header-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: var(--radius-md);
+  background: linear-gradient(to bottom right, var(--accent), var(--accent-hover));
+  color: #fff;
+  box-shadow: 0 6px 16px -4px rgba(232, 100, 12, 0.5);
+}
+
+.deal-modal-header-text {
+  flex: 1;
+  min-width: 0;
+}
+
+.deal-modal-header-text h3 {
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.deal-modal-header-text p {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
 .deal-modal-body {
   display: flex;
   align-items: stretch;
-  min-height: 460px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .deal-modal-nav {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
   flex-shrink: 0;
-  width: 176px;
-  padding: 14px 10px;
+  width: 208px;
+  padding: 18px 12px;
   border-right: 1px solid var(--border);
-  background: var(--surface);
+  background: var(--surface-sunken);
 }
 
 .deal-modal-nav-item {
   position: relative;
   display: flex;
-  align-items: center;
-  gap: 9px;
-  padding: 9px 10px;
-  border-radius: var(--radius-sm);
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px;
+  border-radius: var(--radius-md);
   border: none;
   background: transparent;
   color: var(--text-muted);
   font-size: 13px;
   font-weight: 500;
   text-align: left;
+  transition:
+    background 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 .deal-modal-nav-item:hover {
@@ -88,24 +181,83 @@
 }
 
 .deal-modal-nav-item--active {
-  background: var(--accent-bg);
-  color: var(--accent);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow-sm);
+}
+
+.deal-modal-nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-faint);
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.deal-modal-nav-item--active .deal-modal-nav-icon {
+  background: linear-gradient(to bottom right, var(--accent), var(--accent-hover));
+  border-color: transparent;
+  color: #fff;
+}
+
+.deal-modal-nav-icon--error {
+  border-color: rgba(186, 26, 26, 0.4);
+  color: var(--danger);
+}
+
+.deal-modal-nav-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  padding-top: 4px;
+}
+
+.deal-modal-nav-label {
+  font-weight: 600;
+  color: inherit;
+}
+
+.deal-modal-nav-desc {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+
+.deal-modal-nav-line {
+  position: absolute;
+  left: 25px;
+  top: 40px;
+  width: 1px;
+  height: calc(100% - 8px);
+  background: var(--border-strong);
+  z-index: 0;
 }
 
 .deal-modal-nav-error {
+  position: absolute;
+  top: 10px;
+  right: 10px;
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--danger);
-  margin-left: auto;
   flex-shrink: 0;
 }
 
 .deal-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  padding: 18px;
+  gap: 16px;
+  padding: 22px;
   flex: 1;
   min-width: 0;
 }
@@ -113,7 +265,7 @@
 .deal-form-section {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .deal-form-section[hidden] {
@@ -130,7 +282,7 @@
 
 .field span {
   font-size: 12px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-muted);
 }
 
@@ -138,16 +290,26 @@
 .field select {
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  padding: 8px 10px;
+  padding: 9px 11px;
   font-size: 13px;
   background: var(--surface);
   color: var(--text);
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
+}
+
+.field input:hover,
+.field select:hover {
+  border-color: var(--border-strong);
 }
 
 .field input:focus,
 .field select:focus {
   outline: none;
-  border-color: var(--accent-border);
+  border-color: var(--accent);
+  background: var(--surface);
   box-shadow: 0 0 0 3px var(--accent-bg);
 }
 
@@ -268,4 +430,18 @@
   justify-content: flex-end;
   gap: 10px;
   margin-top: 4px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.btn.deal-modal-submit {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(to right, var(--accent), var(--accent-hover));
+  box-shadow: 0 6px 16px -4px rgba(232, 100, 12, 0.45);
+}
+
+.btn.deal-modal-submit:hover:not(:disabled) {
+  background: var(--accent-hover);
 }

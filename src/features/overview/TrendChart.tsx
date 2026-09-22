@@ -1,4 +1,6 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { ArrowRight } from 'lucide-react'
 import { useTrendPoints } from '../../hooks/useCrm'
 import { QueryState } from '../../components/ui/QueryState'
 import { formatCompactCurrency, formatCurrency } from '../../utils/helpers'
@@ -6,13 +8,13 @@ import { getQueryStateCopy } from '../../utils/queryState'
 import './overview.css'
 
 const WIDTH = 460
-const HEIGHT = 200
-const MARGIN = { top: 18, right: 50, bottom: 26, left: 8 }
+const HEIGHT = 220
+const MARGIN = { top: 34, right: 50, bottom: 26, left: 8 }
 const PLOT_WIDTH = WIDTH - MARGIN.left - MARGIN.right
 const PLOT_HEIGHT = HEIGHT - MARGIN.top - MARGIN.bottom
 const GRID_STEPS = 4
-const BAR_MAX_WIDTH = 24
-const BAR_RADIUS = 4
+const BAR_MAX_WIDTH = 28
+const BAR_RADIUS = 6
 
 function niceStep(roughStep: number): number {
   const exponent = Math.floor(Math.log10(roughStep))
@@ -23,19 +25,8 @@ function niceStep(roughStep: number): number {
   return niceFraction * base
 }
 
-function roundedTopBarPath(
-  x: number,
-  y: number,
-  w: number,
-  h: number,
-  r: number,
-) {
-  if (h <= 0) return ''
-  const radius = Math.min(r, w / 2, h)
-  return `M${x},${y + h} V${y + radius} A${radius},${radius} 0 0 1 ${x + radius},${y} H${x + w - radius} A${radius},${radius} 0 0 1 ${x + w},${y + radius} V${y + h} Z`
-}
-
 export function TrendChart() {
+  const navigate = useNavigate()
   const { data, isLoading, isError, error } = useTrendPoints()
   const [hoverIndex, setHoverIndex] = useState<number | null>(null)
   const errorState = getQueryStateCopy(error, {
@@ -49,7 +40,7 @@ export function TrendChart() {
     return (
       <div className="chart-card card">
         <div className="chart-card-header">
-          <h3>Pipeline value trend</h3>
+          <h3>Pipeline Value Trend</h3>
           <p>Loading weekly pipeline value</p>
         </div>
       </div>
@@ -70,7 +61,7 @@ export function TrendChart() {
     return (
       <div className="chart-card card">
         <div className="chart-card-header">
-          <h3>Pipeline value trend</h3>
+          <h3>Pipeline Value Trend</h3>
           <p>Trend will appear as live deals are created or imported</p>
         </div>
       </div>
@@ -95,6 +86,10 @@ export function TrendChart() {
 
   const lastIndex = points.length - 1
   const tickIndexes = new Set([0, Math.round(lastIndex / 2), lastIndex])
+  const first = points[0]
+  const last = points[lastIndex]
+  const growthPercent =
+    first.value > 0 ? ((last.value - first.value) / first.value) * 100 : null
 
   const hovered = hoverIndex !== null ? points[hoverIndex] : null
   const tooltipWidth = 108
@@ -108,16 +103,49 @@ export function TrendChart() {
 
   return (
     <div className="chart-card card">
-      <div className="chart-card-header">
-        <h3>Pipeline value trend</h3>
-        <p>Weekly pipeline value from live CRM records</p>
+      <div className="chart-card-header chart-card-header--row">
+        <div>
+          <div className="chart-card-title-row">
+            <h3>Pipeline Value Trend</h3>
+            {growthPercent !== null && (
+              <span
+                className={`chart-growth-pill${growthPercent < 0 ? ' chart-growth-pill--down' : ''}`}
+              >
+                {growthPercent >= 0 ? '+' : ''}
+                {growthPercent.toFixed(0)}%
+              </span>
+            )}
+          </div>
+          <p>Weekly valuation trajectory from live CRM deals</p>
+        </div>
+        <div className="chart-segment" role="group" aria-label="Trend range">
+          <button type="button" className="chart-segment-btn chart-segment-btn--active">
+            Weekly
+          </button>
+          <button
+            type="button"
+            className="chart-segment-btn"
+            disabled
+            title="Coming soon"
+          >
+            Monthly
+          </button>
+          <button
+            type="button"
+            className="chart-segment-btn"
+            disabled
+            title="Coming soon"
+          >
+            QTD
+          </button>
+        </div>
       </div>
 
       <svg
         className="trend-chart"
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         role="img"
-        aria-label="Total pipeline value trend over the last 9 weeks"
+        aria-label="Total pipeline value trend over the last weeks"
       >
         {gridLines.map((line) => (
           <g key={line.value}>
@@ -143,6 +171,7 @@ export function TrendChart() {
           const barHeight = baselineY - barTop
           const x = xCenter(index) - barWidth / 2
           const isHovered = hoverIndex === index
+          const isCurrent = index === lastIndex
 
           return (
             <g key={point.label}>
@@ -152,30 +181,43 @@ export function TrendChart() {
                 width={barWidth}
                 height={Math.max(0, barHeight)}
                 rx={BAR_RADIUS}
-                className={
-                  isHovered ? 'trend-bar trend-bar--hovered' : 'trend-bar'
-                }
-                style={
-                  roundedTopBarPath(x, barTop, barWidth, barHeight, BAR_RADIUS)
-                    ? undefined
-                    : undefined
-                }
+                className={[
+                  'trend-bar',
+                  isCurrent ? 'trend-bar--current' : '',
+                  isHovered ? 'trend-bar--hovered' : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')}
               />
-              {index === lastIndex && (
-                <text
-                  x={xCenter(index)}
-                  y={barTop - 10}
-                  textAnchor="middle"
-                  className="trend-end-label"
-                >
-                  {formatCompactCurrency(point.value)}
-                </text>
+              {isCurrent && (
+                <>
+                  <text
+                    x={xCenter(index)}
+                    y={barTop - 20}
+                    textAnchor="middle"
+                    className="trend-end-label"
+                  >
+                    {formatCompactCurrency(point.value)}
+                  </text>
+                  <text
+                    x={xCenter(index)}
+                    y={barTop - 8}
+                    textAnchor="middle"
+                    className="trend-current-label"
+                  >
+                    CURRENT
+                  </text>
+                </>
               )}
               <text
                 x={xCenter(index)}
                 y={HEIGHT - 6}
                 textAnchor="middle"
-                className="trend-axis-label"
+                className={
+                  isCurrent
+                    ? 'trend-axis-label trend-axis-label--current'
+                    : 'trend-axis-label'
+                }
               >
                 {tickIndexes.has(index) ? point.label : ''}
               </text>
@@ -197,7 +239,7 @@ export function TrendChart() {
           )
         })}
 
-        {hoverIndex !== null && hovered && (
+        {hoverIndex !== null && hovered && hoverIndex !== lastIndex && (
           <g
             transform={`translate(${tooltipX}, ${Math.max(0, hoverBarTop - 46)})`}
           >
@@ -216,6 +258,20 @@ export function TrendChart() {
           </g>
         )}
       </svg>
+
+      <div className="chart-card-footer">
+        <span className="chart-card-footer-note">
+          Latest week: <strong>{last.label}</strong>
+        </span>
+        <button
+          type="button"
+          className="chart-card-footer-link"
+          onClick={() => navigate('/pipeline')}
+        >
+          Deep Dive Analytics
+          <ArrowRight size={14} strokeWidth={2.2} />
+        </button>
+      </div>
     </div>
   )
 }

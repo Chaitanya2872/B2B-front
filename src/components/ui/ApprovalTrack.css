@@ -34,3 +34,8 @@
   background: var(--danger-bg);
   color: var(--danger);
 }
+
+.approval-step--upcoming {
+  background: var(--surface-sunken);
+  color: var(--text-faint);
+}

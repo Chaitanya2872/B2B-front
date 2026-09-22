@@ -1,0 +1,31 @@
+.app-footer {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 12px 28px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-faint);
+  font-size: 12px;
+}
+
+.app-footer-links {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.app-footer-links span {
+  cursor: default;
+}
+
+@media (max-width: 640px) {
+  .app-footer {
+    padding: 10px 16px;
+    justify-content: center;
+    text-align: center;
+  }
+}

@@ -28,6 +28,17 @@ export function formatCompactCurrency(value: number): string {
   return `Rs ${value}`
 }
 
+export function formatCrore(value: number): string {
+  if (value >= 10000000) return `₹${(value / 10000000).toFixed(2)} Cr`
+  if (value >= 100000) return `₹${(value / 100000).toFixed(2)} L`
+  return `₹${value.toLocaleString('en-IN')}`
+}
+
+export function currentQuarterLabel(date = new Date()): string {
+  const quarter = Math.floor(date.getMonth() / 3) + 1
+  return `Q${quarter} ${date.getFullYear()}`
+}
+
 export function formatStageLabel(stageId: string): string {
   return stageId
     .split('_')
